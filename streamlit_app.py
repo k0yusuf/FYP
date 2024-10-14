@@ -4,7 +4,7 @@ import joblib  # To load the pre-trained model
 import numpy as np
 
 # Load the dataset containing player stats
-df = pd.read_excel('/mnt/data/NBA Dataset Final.xlsx')
+df = pd.read_excel('"C:\Users\60113\OneDrive - Asia Pacific University\Documents\APU\Year III\Sem I\FYP Materials - Semester 1\NBA Dataset Final.xlsx"')
 
 # Load the pre-trained model (make sure to have your model saved as 'model.pkl')
 model = joblib.load('model.pkl')

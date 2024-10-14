@@ -1,6 +1,7 @@
 import streamlit as st
-
-
+import pandas as pd
+import joblib  # To load the pre-trained model
+import numpy as np
 
 # Load the dataset containing player stats
 df = pd.read_excel('/mnt/data/NBA Dataset Final.xlsx')

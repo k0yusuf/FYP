@@ -49,9 +49,11 @@ else:
     st.write("### Average Stats for the Selected 15 Players:")
     st.dataframe(average_stats)
 
+     SVM_model = pickle.load(open('svm_model.sav', 'rb'))
+
     # Here you would add the code for predicting the season outcome using the pre-trained model
-    # prediction = model.predict([average_stats])
+    prediction = SVM_model.predict([average_stats])
 
     # Display the prediction (mockup prediction for demonstration)
-    # st.write(f"### Predicted Season Outcome: {prediction}")
+     st.write(f"### Predicted Season Outcome: {prediction}")
 

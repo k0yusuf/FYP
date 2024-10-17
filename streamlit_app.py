@@ -42,7 +42,10 @@ else:
 
     # Calculate average stats of the selected players
     average_stats = selected_players_df.mean(numeric_only=True)
-    
+    if 'Season' in average_stats.index:
+        average_stats = average_stats.drop('Season')
+    if 'Season Outcome' in average_stats.index:
+        average_stats = average_stats.drop('Season Outcome')
     st.write("### Average Stats for the Selected 15 Players:")
     st.dataframe(average_stats)
 

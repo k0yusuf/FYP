@@ -55,7 +55,7 @@ else:
 
 
 # Function to get prediction and probability
-def predict_season_outcome(SVM_model, data):
+def predict_season_outcome(model, data):
     # Get prediction
     prediction = model.predict(data)
     # Get prediction probabilities (assuming binary classification or multiclass model)
@@ -66,7 +66,7 @@ def predict_season_outcome(SVM_model, data):
 # Button to predict the season outcome
 if st.button('Predict Season Outcome'):
     # Get prediction and its probability
-    prediction, prediction_prob = predict_season_outcome(model, average_stats)
+    prediction, prediction_prob = predict_season_outcome(SVM_model, average_stats)
     
     # Display the prediction
     st.write(f"### Predicted Season Outcome: {prediction[0]}")

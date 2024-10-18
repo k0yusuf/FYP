@@ -55,7 +55,7 @@ else:
 
 
 # Function to get prediction and probability
-def predict_season_outcome(model, data):
+def predict_season_outcome(SVM_model, data):
     # Get prediction
     prediction = model.predict(data)
     # Get prediction probabilities (assuming binary classification or multiclass model)

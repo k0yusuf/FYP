@@ -52,9 +52,26 @@ else:
 
     SVM_model = pickle.load(open('svm_model.sav', 'rb'))
 
-    # Here you would add the code for predicting the season outcome using the pre-trained model
-    prediction = SVM_model.predict([average_stats])
 
-    # Display the prediction (mockup prediction for demonstration)
-    st.write(f"### Predicted Season Outcome: {prediction}")
+# Function to get prediction and probability
+def predict_season_outcome(model, data):
+    # Get prediction
+    prediction = model.predict(data)
+    # Get prediction probabilities (assuming binary classification or multiclass model)
+    prediction_prob = model.predict_proba(data)
+    
+    return prediction, prediction_prob
+
+# Button to predict the season outcome
+if st.button('Predict Season Outcome'):
+    # Get prediction and its probability
+    prediction, prediction_prob = predict_season_outcome(model, average_stats)
+    
+    # Display the prediction
+    st.write(f"### Predicted Season Outcome: {prediction[0]}")
+    
+    # Display the prediction probability
+    st.write("### Prediction Probability:")
+    for i, prob in enumerate(prediction_prob[0]):
+        st.write(f"Class {i}: {prob:.4f}")
 

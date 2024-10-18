@@ -57,8 +57,7 @@ else:
 
     prediction = SVM_model.predict(average_stats)
         
-    # Display the prediction
-    st.write(f"### Predicted Season Outcome: {prediction}")
+    st.write(f"### Predicted Season Outcome: {prediction[0]}")
     
 
 

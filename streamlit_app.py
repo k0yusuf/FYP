@@ -3,7 +3,6 @@ import pandas as pd
 import joblib  # To load the pre-trained model
 import numpy as np
 import pickle
-from sklearn.ensemble import RandomForestClassifier
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
@@ -51,13 +50,11 @@ else:
     st.write("### Average Stats for the Selected 15 Players:")
     st.dataframe(average_stats)
 
+     SVM_model = pickle.load(open('svm_model.sav', 'rb'))
     SVM_model = pickle.load(open('svm_model.sav', 'rb'))
 
+    # Here you would add the code for predicting the season outcome using the pre-trained model
+    prediction = SVM_model.predict([average_stats])
 
-
-    prediction = SVM_model.predict(average_stats)
-        
-    st.write(f"### Predicted Season Outcome: {prediction[0]}")
-    
-
-
+    # Display the prediction (mockup prediction for demonstration)
+    st.write(f"### Predicted Season Outcome: {prediction}")

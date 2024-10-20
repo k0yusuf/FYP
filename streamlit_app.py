@@ -2,13 +2,18 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
+from google.colab import files
+files.download('svm_model.pkl')
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
 
 # Load the pre-trained model
-SVM_model = pickle.load(open('svm_model.sav', 'rb'))
+@st.cache(allow_output_mutation=True)
+def load_model():
+    return joblib.load('svm_model.pkl')  # Make sure to update this path if you're using a hosted model
 
+SVM_model = load_model()
 # Load scaler if applicable (uncomment if you used a scaler during training)
 # scaler = pickle.load(open('scaler.pkl', 'rb'))
 
@@ -58,9 +63,16 @@ else:
 
     # Scale the stats if a scaler was used during training
     # average_stats_array = scaler.transform(average_stats_array)
+    average_stats = selected_players_df.mean(numeric_only=True)
+    average_stats = average_stats.drop(['Season', 'Season Outcome'], errors='ignore')
 
-    # Predict the season outcome using the pre-trained SVM model
+    # Reshape average stats for prediction
+    average_stats_array = average_stats.values.reshape(1, -1)
+
+    # Predict the season outcome using the pre-trained model
     prediction = SVM_model.predict(average_stats_array)
+    prediction_proba = SVM_model.predict_proba(average_stats_array)
 
-    # Display the prediction
+    # Display prediction and probability
     st.write(f"### Predicted Season Outcome: {prediction[0]}")
+    st.write(f"### Prediction Probability: {prediction_proba}")

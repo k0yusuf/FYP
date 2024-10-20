@@ -52,8 +52,8 @@ else:
 
     SVM_model = pickle.load(open('svm_model.sav', 'rb'))
 
-    prediction = SVM_model.predict(average_stats_array)
-    prediction_proba = SVM_model.predict_proba(average_stats_array)
+    prediction = SVM_model.predict(average_stats)
+    prediction_proba = SVM_model.predict_proba(average_stats)
 
     # Display prediction and probability
     st.write(f"### Predicted Season Outcome: {prediction[0]}")

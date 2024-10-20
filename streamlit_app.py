@@ -63,8 +63,8 @@ else:
 
     # Predict the season outcome using the pre-trained SVM model
     prediction = SVM_model.predict(average_stats_array)
-    prediction_proba = SVM_model.predict_proba(average_stats_array)
+    #prediction_proba = SVM_model.predict_proba(average_stats_array)
 
     # Display the prediction
     st.write(f"### Predicted Season Outcome: {prediction[0]}")
-    st.write(f"### Prediction Probability: {prediction_proba}")
+    #st.write(f"### Prediction Probability: {prediction_proba}")

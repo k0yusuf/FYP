@@ -9,7 +9,7 @@ import joblib
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
 
 # Load the pre-trained model
-SVM_model = pickle.load(open('svm_model.sav', 'rb'))
+SVM_model = joblib.load('svm_model.sav')
 
 # Load scaler if applicable (uncomment if you used a scaler during training)
 # scaler = pickle.load(open('scaler.pkl', 'rb'))

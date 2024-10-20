@@ -10,7 +10,7 @@ df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/maste
 # Load the pre-trained model
 @st.cache(allow_output_mutation=True)
 def load_model():
-    return joblib.load('svm_model.pkl')  # Make sure to update this path if you're using a hosted model
+    return joblib.load('��(')  # Make sure to update this path if you're using a hosted model
 
 SVM_model = load_model()
 # Load scaler if applicable (uncomment if you used a scaler during training)

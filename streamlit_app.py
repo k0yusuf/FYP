@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
-from google.colab import files
 files.download('svm_model.pkl')
 
 # Load the dataset containing player stats

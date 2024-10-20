@@ -58,6 +58,8 @@ else:
     # Reshape the average_stats to 2D array (1 sample, n features)
     average_stats_array = average_stats.values.reshape(1, -1)
 
+    average_stats_array
+
     # Scale the stats if a scaler was used during training
     # average_stats_array = scaler.transform(average_stats_array)
 

@@ -1,20 +1,12 @@
 import streamlit as st
 import pandas as pd
+import joblib  # To load the pre-trained model
 import numpy as np
 import pickle
-import joblib
-
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
 
-# Load the pre-trained model
-SVM_model = joblib.load('svm_model.sav')
-
-# Load scaler if applicable (uncomment if you used a scaler during training)
-# scaler = pickle.load(open('scaler.pkl', 'rb'))
-
-# Unique player names for selection
 player_names = df['Player'].unique()
 
 # Title of the app
@@ -51,22 +43,17 @@ else:
 
     # Calculate average stats of the selected players
     average_stats = selected_players_df.mean(numeric_only=True)
-    
-    # Drop columns that should not be included in the prediction
-    average_stats = average_stats.drop(['Season', 'Season Outcome'], errors='ignore')
+    if 'Season' in average_stats.index:
+        average_stats = average_stats.drop('Season')
+    if 'Season Outcome' in average_stats.index:
+        average_stats = average_stats.drop('Season Outcome')
+    st.write("### Average Stats for the Selected 15 Players:")
+    st.dataframe(average_stats)
 
-    # Reshape the average_stats to 2D array (1 sample, n features)
-    average_stats_array = average_stats.values.reshape(1, -1)
+    SVM_model = pickle.load(open('svm_model.sav', 'rb'))
 
-    average_stats_array
+    # Here you would add the code for predicting the season outcome using the pre-trained model
+    prediction = SVM_model.predict([average_stats])
 
-    # Scale the stats if a scaler was used during training
-    # average_stats_array = scaler.transform(average_stats_array)
-
-    # Predict the season outcome using the pre-trained SVM model
-    prediction = SVM_model.predict(average_stats_array)
-    #prediction_proba = SVM_model.predict_proba(average_stats_array)
-
-    # Display the prediction
-    st.write(f"### Predicted Season Outcome: {prediction[0]}")
-    #st.write(f"### Prediction Probability: {prediction_proba}")
+    # Display the prediction (mockup prediction for demonstration)
+    st.write(f"### Predicted Season Outcome: {prediction}")

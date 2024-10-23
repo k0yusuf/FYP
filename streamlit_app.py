@@ -93,7 +93,6 @@ else:
         st.dataframe(average_stats)
 
     # Load the SVM model
-    st.write(average_stats)
     SVM_model = joblib.load('svm_model.joblib')
 
     # Prediction of the season outcome using the pre-trained model

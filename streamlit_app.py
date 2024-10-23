@@ -3,6 +3,8 @@ import pandas as pd
 import joblib  # To load the pre-trained model
 import numpy as np
 import pickle
+from sklearn.preprocessing import StandardScaler
+
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
 
@@ -94,7 +96,6 @@ else:
 
     # Load the SVM model
     SVM_model = joblib.load('svm_model.joblib')
-    from sklearn.preprocessing import StandardScaler
     scaler = joblib.load('svm_scaler.joblib')  # Load the scaler used in training
     average_stats_scaled = scaler.transform([average_stats])  # Apply scaling
 

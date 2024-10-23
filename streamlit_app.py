@@ -93,8 +93,8 @@ else:
         st.dataframe(average_stats)
 
     # Load the SVM model
-    SVM_model = joblib.load('nba_ann_model.h5')
-
+    with open('ann_model.pkl', 'rb') as f:
+    SVM_model = pickle.load(f)
     # Prediction of the season outcome using the pre-trained model
     prediction = SVM_model.predict([average_stats])
     prediction_proba = SVM_model.predict_proba([average_stats])

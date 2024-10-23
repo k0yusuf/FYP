@@ -2,3 +2,5 @@ streamlit
 numpy
 pandas
 scikit-learn
+keras
+tensorflow

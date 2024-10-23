@@ -95,7 +95,7 @@ else:
         st.dataframe(average_stats)
 
     # Load the SVM model
-    #average_stats = np.array(average_stats).reshape(1, -1)
+    average_stats = np.array(average_stats).reshape(0, -1)
     SVM_model = joblib.load('rf_model.joblib')
     #scaler = joblib.load('svm_scaler.joblib')  # Load the scaler used in training
     scaler = StandardScaler()

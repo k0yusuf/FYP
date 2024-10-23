@@ -3,7 +3,6 @@ import pandas as pd
 import joblib  # To load the pre-trained model
 import numpy as np
 import pickle
-!pip install keras
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
@@ -94,7 +93,7 @@ else:
         st.dataframe(average_stats)
 
     # Load the SVM model
-    with open('ann_model.pkl', 'rb') as f:
+    with open('svm_model.pkl', 'rb') as f:
         SVM_model = pickle.load(f)
     # Prediction of the season outcome using the pre-trained model
     prediction = SVM_model.predict([average_stats])

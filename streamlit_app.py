@@ -93,7 +93,7 @@ else:
         st.dataframe(average_stats)
 
     # Load the SVM model
-    SVM_model = joblib.load('svm_model.joblib')
+    SVM_model = joblib.load('nba_ann_model.joblib')
 
     # Prediction of the season outcome using the pre-trained model
     prediction = SVM_model.predict([average_stats])

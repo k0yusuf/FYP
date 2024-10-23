@@ -96,7 +96,8 @@ else:
 
     # Load the SVM model
     SVM_model = joblib.load('svm_model.joblib')
-    scaler = joblib.load('svm_scaler.joblib')  # Load the scaler used in training
+    #scaler = joblib.load('svm_scaler.joblib')  # Load the scaler used in training
+    scaler = StandardScaler()  
     average_stats_scaled = scaler.fit_transform([average_stats])  # Apply scaling
 
     # Prediction of the season outcome using the pre-trained model

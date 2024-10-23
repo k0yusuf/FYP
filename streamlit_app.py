@@ -95,13 +95,13 @@ else:
         st.dataframe(average_stats)
 
     # Load the SVM model
-    SVM_model = joblib.load('svm_model.joblib')
+    SVM_model = joblib.load('rf_model.joblib')
     scaler = joblib.load('svm_scaler.joblib')  # Load the scaler used in training
-    average_stats_scaled = scaler.fit_transform([average_stats])  # Apply scaling
+    #average_stats_scaled = scaler.fit_transform([average_stats])  # Apply scaling
 
     # Prediction of the season outcome using the pre-trained model
-    prediction = SVM_model.predict([average_stats_scaled])
-    prediction_proba = SVM_model.predict_proba([average_stats_scaled])
+    prediction = SVM_model.predict([average_stats])
+    prediction_proba = SVM_model.predict_proba([average_stats])
 
     # Display the prediction with NBA-themed results
     st.markdown("<hr>", unsafe_allow_html=True)  # Horizontal line for separation

@@ -93,7 +93,7 @@ else:
         st.dataframe(average_stats)
 
     # Load the SVM model
-    with open('svm_model.pkl', 'wb') as f:
+    with open('ann_model.pkl', 'rb') as f:
         SVM_model = pickle.load(f)
     # Prediction of the season outcome using the pre-trained model
     prediction = SVM_model.predict([average_stats])

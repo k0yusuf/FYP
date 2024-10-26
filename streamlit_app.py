@@ -37,14 +37,14 @@ if len(selected_players) == 15:
 
     # Ensure `average_stats` has the same column names as used during training
     # Replace missing columns with 0 if necessary
-    all_columns = scaler.feature_names_in_
-    average_stats_df = pd.DataFrame([average_stats], columns=all_columns).fillna(0)
+    #all_columns = scaler.feature_names_in_
+    #average_stats_df = pd.DataFrame([average_stats], columns=all_columns).fillna(0)
 
     # Scale the average stats
     #scaled_average_stats = scaler.transform(average_stats_df)
 
     # Predict season outcome and probability
-    prediction = model.predict(average_stats)
+    prediction = model.predict0(average_stats)
     prediction_proba = model.predict_proba(average_stats)
 
     # Display prediction and confidence

@@ -32,7 +32,7 @@ if len(selected_players) == 15:
     st.dataframe(average_stats)
 
     # Load the scaler and model
-    scaler = joblib.load('scaler.joblib')
+    scaler = joblib.load('svm_scaler.joblib')
     model = joblib.load('svm_model.joblib')
 
     # Ensure `average_stats` has the same column names as used during training

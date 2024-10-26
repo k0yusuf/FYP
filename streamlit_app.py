@@ -45,7 +45,7 @@ if len(selected_players) == 15:
 
     # Predict season outcome and probability
     prediction = model.predict(scaled_average_stats)
-    prediction_proba = model.predict_proba(scaled_average_stats)
+    prediction_proba = model.predict_proba(average_stats)
 
     # Display prediction and confidence
     st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)

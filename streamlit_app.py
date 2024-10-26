@@ -48,25 +48,25 @@ st.markdown(
     """
     <div class="header">
     <h3>Instructions:</h3>
-    <p>Select between 12 and 15 players to predict the season outcome based on their average stats.</p>
+    <p>Select between 10 and 15 players to predict the season outcome based on their average stats.</p>
     </div>
     """, unsafe_allow_html=True
 )
 
 # Multiselect widget to allow users to select players
 selected_players = st.multiselect(
-    'Select between 12 and 15 Players:',
+    'Select between 10 and 15 Players:',
     options=player_names,
     default=[],
     max_selections=15,
-    help='You must select between 12 and 15 players.'
+    help='You must select between 10 and 15 players.'
 )
 
 # Check for player selection limits
-if len(selected_players) < 12:
-    st.error("Please select at least 12 players.")
+if len(selected_players) < 10:
+    st.error("Please select at least 10 players.")
 elif len(selected_players) > 15:
-    st.error("You have selected more than 15 players. Please deselect to make it between 12 and 15.")
+    st.error("You have selected more than 15 players. Please deselect to make it between 10 and 15.")
 else:
     st.markdown('<p class="success-text">You have selected your roster! 🏀</p>', unsafe_allow_html=True)
 

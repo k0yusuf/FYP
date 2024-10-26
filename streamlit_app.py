@@ -33,7 +33,7 @@ if len(selected_players) == 15:
 
     # Load the scaler and model
     scaler = joblib.load('svm_scaler.joblib')
-    model = joblib.load('svm_model.joblib')
+    model = joblib.load('rf_model.joblib')
 
     # Ensure `average_stats` has the same column names as used during training
     # Replace missing columns with 0 if necessary
@@ -41,7 +41,7 @@ if len(selected_players) == 15:
     average_stats_df = pd.DataFrame([average_stats], columns=all_columns).fillna(0)
 
     # Scale the average stats
-    scaled_average_stats = scaler.transform(average_stats_df)
+    #scaled_average_stats = scaler.transform(average_stats_df)
 
     # Predict season outcome and probability
     prediction = model.predict(scaled_average_stats)

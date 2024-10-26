@@ -3,8 +3,6 @@ import pandas as pd
 import joblib  # To load the pre-trained model
 import numpy as np
 import pickle
-from sklearn.preprocessing import StandardScaler
-
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
 
@@ -94,25 +92,15 @@ else:
         # Display average stats
         st.dataframe(average_stats)
 
-    # Load the scaler and model
-    #scaler = joblib.load('svm_scaler.joblib')
-    model = joblib.load('rf_model.joblib')
+    # Load the SVM model
+    SVM_model = joblib.load('rf_model.joblib')
 
-    # Ensure `average_stats` has the same column names as used during training
-    # Replace missing columns with 0 if necessary
-    #all_columns = scaler.feature_names_in_
-    #average_stats_df = pd.DataFrame([average_stats], columns=all_columns).fillna(0)
+    # Prediction of the season outcome using the pre-trained model
+    prediction = SVM_model.predict([average_stats])
+    prediction_proba = SVM_model.predict_proba([average_stats])
 
-    # Scale the average stats
-    #scaled_average_stats = scaler.transform(average_stats_df)
-
-    # Predict season outcome and probability
-    prediction = model.predict(average_stats)
-    prediction_proba = model.predict_proba(average_stats)
-
-    # Display prediction and confidence
+    # Display the prediction with NBA-themed results
+    st.markdown("<hr>", unsafe_allow_html=True)  # Horizontal line for separation
     st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
-    st.write(f"Predicted Season Outcome: **{prediction[0]}**")
-    st.write(f"Prediction Confidence: **{np.max(prediction_proba) * 100:.2f}%**")
-
-
+    st.write(f"### Predicted Season Outcome: **{prediction[0]}**")
+    st.write(f"### Prediction Confidence: **{np.max(prediction_proba) * 100:.2f}%**")

@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
-import joblib  # To load the pre-trained model
+import joblib
 import numpy as np
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
-
 player_names = df['Player'].unique()
 
 # Set custom NBA-themed page layout
@@ -39,7 +38,6 @@ st.markdown(
     </style>
     """, unsafe_allow_html=True
 )
-
 st.markdown('<h1 class="main-title">🏀 NBA Season Outcome Prediction</h1>', unsafe_allow_html=True)
 st.markdown('<h2 class="sub-title">Create Your Dream Roster!</h2>', unsafe_allow_html=True)
 
@@ -69,33 +67,36 @@ elif len(selected_players) > 15:
     st.error("You have selected more than 15 players. Please deselect to make it between 10 and 15.")
 else:
     st.markdown('<p class="success-text">You have selected your roster! 🏀</p>', unsafe_allow_html=True)
-
+    
     # Filter and display selected player stats
     selected_players_df = df[df['Player'].isin(selected_players)]
+    
+    # Calculate average stats and convert to DataFrame
     average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
-
+    average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
+    
     st.write("### Average Stats for Selected Players:")
     st.dataframe(average_stats)
-
-    # Load the SVM model
+    
+    # Load the SVM model and scaler
     SVM_model = joblib.load('svm_model (1).joblib')
     scaler = joblib.load('scaler.joblib')
-
-    scaled_average_stats = scaler.fit_transform(average_stats)
-
+    
+    # Scale the features using the loaded scaler
+    scaled_average_stats = scaler.transform(average_stats_df)
+    
     # Predict the season outcome
-    prediction = SVM_model.predict([scaled_average_stats])
-    prediction_proba = SVM_model.predict_proba([scaled_average_stats])
-
+    prediction = SVM_model.predict(scaled_average_stats)
+    prediction_proba = SVM_model.predict_proba(scaled_average_stats)
+    
     # Display prediction possibilities with confidence
     outcome_df = pd.DataFrame({
         'Outcome': SVM_model.classes_,
         'Confidence (%)': prediction_proba[0] * 100
     })
-
     st.write("### Prediction Possibilities and Confidence:")
     st.table(outcome_df)
-
+    
     # Show final prediction outcome
     st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
     st.write(f"### Predicted Outcome: **{prediction[0]}**")

@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
+import shap
+from lime.lime_tabular import LimeTabularExplainer
 from sklearn.preprocessing import StandardScaler
 
 # Load the dataset containing player stats
@@ -84,9 +86,7 @@ else:
     scaler = joblib.load('scaler.joblib')
     
     # Scale the features using the loaded scaler
-    #scaler = StandardScaler()
     scaled_average_stats = scaler.transform(average_stats_df)
-
 
     # Predict the season outcome
     prediction = SVM_model.predict(scaled_average_stats)
@@ -104,3 +104,35 @@ else:
     st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
     st.write(f"### Predicted Outcome: **{prediction[0]}**")
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
+
+    # Button to show explanation
+    if st.button("Show Prediction Explanation"):
+        # Separate page for explanation
+        st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP and LIME</h2>', unsafe_allow_html=True)
+
+        # SHAP explanation
+        st.write("### SHAP Explanation")
+        shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
+        shap_values = shap_explainer.shap_values(scaled_average_stats)
+
+        # Plot SHAP values
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
+        st.pyplot(bbox_inches='tight')
+
+        # LIME explanation
+        st.write("### LIME Explanation")
+        lime_explainer = LimeTabularExplainer(
+            scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values),
+            feature_names=average_stats.index,
+            class_names=SVM_model.classes_,
+            discretize_continuous=True
+        )
+        
+        lime_exp = lime_explainer.explain_instance(
+            data_row=scaled_average_stats[0],
+            predict_fn=SVM_model.predict_proba
+        )
+        
+        # Display LIME explanation as HTML
+        st.write(lime_exp.as_html(), unsafe_allow_html=True)

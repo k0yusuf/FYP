@@ -80,14 +80,16 @@ else:
     
     # Load the SVM model and scaler
     SVM_model = joblib.load('svm_model (1).joblib')
-    scaler = joblib.load('scaler.joblib')
+    #scaler = joblib.load('scaler.joblib')
     
     # Scale the features using the loaded scaler
-    #scaled_average_stats = scaler.transform(average_stats_df)
-    
+    scaler = StandardScaler()
+    scaled_average_stats = scaler.fit_transform(average_stats_df)
+
+
     # Predict the season outcome
-    prediction = SVM_model.predict(average_stats_df)
-    prediction_proba = SVM_model.predict_proba(average_stats_df)
+    prediction = SVM_model.predict(scaled_average_stats_df)
+    prediction_proba = SVM_model.predict_proba(scaled_average_stats_df)
     
     # Display prediction possibilities with confidence
     outcome_df = pd.DataFrame({

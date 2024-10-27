@@ -106,9 +106,9 @@ else:
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
     # Button to show explanation
-    if st.button("See Why"):
+    if st.button("Show Prediction Explanation"):
         # Separate page for explanation
-        st.markdown('<h2 class="sub-title">📊Your Roaster's Analysis</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP and LIME</h2>', unsafe_allow_html=True)
 
         # SHAP explanation
         st.write("### SHAP Explanation")

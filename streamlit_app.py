@@ -89,8 +89,8 @@ else:
 
 
     # Predict the season outcome
-    prediction = SVM_model.predict(scaled_average_stats_df)
-    prediction_proba = SVM_model.predict_proba(scaled_average_stats_df)
+    prediction = SVM_model.predict(scaled_average_stats)
+    prediction_proba = SVM_model.predict_proba(scaled_average_stats)
     
     # Display prediction possibilities with confidence
     outcome_df = pd.DataFrame({

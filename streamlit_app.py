@@ -79,7 +79,7 @@ else:
 
     # Load the SVM model
     SVM_model = joblib.load('svm_model (1).joblib')
-    scaler = joblib.load('Scaler.joblib')
+    scaler = joblib.load('scaler.joblib')
 
     scaled_average_stats = scaler.fit_transform(average_stats_df)
 

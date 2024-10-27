@@ -3,6 +3,8 @@ import pandas as pd
 import joblib
 import numpy as np
 import shap
+pip install shap
+pip install lime
 from lime.lime_tabular import LimeTabularExplainer
 from sklearn.preprocessing import StandardScaler
 

@@ -112,7 +112,7 @@ else:
 
         # SHAP explanation
         st.write("### SHAP Explanation")
-        shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Team' ,'Offense Position', 'Defensive Role'], axis=1).values))
+        shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Team' ,'Offense Position', 'Defensive Role', 'Multiple Teams'], axis=1).values))
         shap_values = shap_explainer.shap_values(scaled_average_stats)
 
         # Plot SHAP values
@@ -123,7 +123,7 @@ else:
         # LIME explanation
         st.write("### LIME Explanation")
         lime_explainer = LimeTabularExplainer(
-            scaler.transform(df.drop(['Player', 'Team' ,'Offense Position', 'Defensive Role'], axis=1).values),
+            scaler.transform(df.drop(['Player', 'Team' ,'Offense Position', 'Defensive Role', 'Multiple Teams'], axis=1).values),
             feature_names=average_stats.index,
             class_names=SVM_model.classes_,
             discretize_continuous=True

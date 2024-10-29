@@ -75,7 +75,7 @@ else:
     selected_players_df = df[df['Player'].isin(selected_players)]
     
     # Calculate average stats and convert to DataFrame
-    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
+    average_stats = selected_players_df.select_dtypes(include=np.number).mean()
     average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
     
     st.write("### Average Stats for Selected Players:")

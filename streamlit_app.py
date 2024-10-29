@@ -73,7 +73,6 @@ else:
     
     # Filter and display selected player stats
     selected_players_df = df[df['Player'].isin(selected_players)]
-    selected_players_df = selected_players_df.replace({',': ''}, regex=True)    
     # Calculate average stats and convert to DataFrame
     average_stats = selected_players_df.select_dtypes(include=np.number).mean()
     average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row

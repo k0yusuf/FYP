@@ -73,11 +73,7 @@ else:
     
     # Filter and display selected player stats
     selected_players_df = df[df['Player'].isin(selected_players)]
-    # Remove commas from numeric columns in selected_players_df
-    selected_players_df = selected_players_df.replace({',': ''}, regex=True)
 
-    # Convert all columns to numeric, forcing errors='coerce' to handle non-numeric values gracefully
-    #selected_players_df = selected_players_df.apply(pd.to_numeric, errors='coerce')
     # Calculate average stats and convert to DataFrame
     average_stats = selected_players_df.select_dtypes(include=np.number).mean()
     average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row

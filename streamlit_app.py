@@ -7,7 +7,7 @@ from lime.lime_tabular import LimeTabularExplainer
 from sklearn.preprocessing import StandardScaler
 
 # Load the dataset containing player stats
-df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/NBA%20Dataset%20Final%20CSV.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
 player_names = df['Player'].unique()
 
 # Set custom NBA-themed page layout

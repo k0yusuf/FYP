@@ -73,8 +73,9 @@ else:
     
     # Filter and display selected player stats
     selected_players_df = df[df['Player'].isin(selected_players)]
+    
     # Calculate average stats and convert to DataFrame
-    average_stats = selected_players_df.select_dtypes(include=np.number).mean()
+    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
     average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
     
     st.write("### Average Stats for Selected Players:")
@@ -111,7 +112,7 @@ else:
 
         # SHAP explanation
         st.write("### SHAP Explanation")
-        shap_explainer = shap.KernelExplainer(SVM_model.predict_proba,scaler.transform(df.drop(['Player','Team','Offense Position','Offensive Archetype','Defensive Role','Multiple Teams'], axis=1).values))
+        shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
         shap_values = shap_explainer.shap_values(scaled_average_stats)
 
         # Plot SHAP values
@@ -122,7 +123,7 @@ else:
         # LIME explanation
         st.write("### LIME Explanation")
         lime_explainer = LimeTabularExplainer(
-            scaler.transform(df.drop(['Player','Offense Position','Team','Offensive Archetype','Defensive Role','Multiple Teams'], axis=1).values),
+            scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values),
             feature_names=average_stats.index,
             class_names=SVM_model.classes_,
             discretize_continuous=True

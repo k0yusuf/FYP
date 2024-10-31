@@ -117,7 +117,17 @@ else:
         # SHAP waterfall plot for the class with the highest probability
         st.write("### SHAP Waterfall Plot")
         shap_class_index = np.argmax(prediction_proba[0])
-        shap.waterfall_plot(shap.Explanation(values=shap_values[shap_class_index][0], 
-                                             base_values=explainer.expected_value[shap_class_index], 
-                                             feature_names=average_stats_df.columns))
+    
+    # Limit to the top 20 most important features
+        shap_values_selected = shap_values[shap_class_index][0]
+        top_features = np.argsort(np.abs(shap_values_selected))[-20:]
+        shap_explanation = shap.Explanation(
+            values=shap_values_selected[top_features], 
+            base_values=explainer.expected_value[shap_class_index], 
+            feature_names=average_stats_df.columns[top_features]
+    )
+
+    # Render the waterfall plot for the top features
+        shap.waterfall_plot(shap_explanation)
         st.pyplot()
+

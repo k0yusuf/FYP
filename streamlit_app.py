@@ -126,6 +126,7 @@ else:
     # Use KernelExplainer for SHAP
         shap_explainer = shap.KernelExplainer(predict_proba_shap, shap.kmeans(scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values), 10))
         shap_values = shap_explainer.shap_values(scaled_average_stats)
+        np.shape(shap_values)
 
     #Plot SHAP values
         shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
@@ -144,7 +145,7 @@ else:
         lime_exp = lime_explainer.explain_instance(
            data_row=scaled_average_stats[0],
           predict_fn=SVM_model.predict_proba
-        )
+        ) 
 
         #Display LIME explanation as HTML
         #st.write(lime_exp.as_html(), unsafe_allow_html=True)

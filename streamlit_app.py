@@ -5,6 +5,7 @@ import numpy as np
 import shap
 from lime.lime_tabular import LimeTabularExplainer
 from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -87,7 +88,7 @@ else:
     
     # Scale the features using the loaded scaler
     scaled_average_stats = scaler.transform(average_stats_df)
-
+    
     # Predict the season outcome
     prediction = SVM_model.predict(scaled_average_stats)
     prediction_proba = SVM_model.predict_proba(scaled_average_stats)
@@ -104,35 +105,52 @@ else:
     st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
     st.write(f"### Predicted Outcome: **{prediction[0]}**")
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
-
-    # Button to show explanation
-    if st.button("Show Prediction Explanation"):
-        # Separate page for explanation
-        st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP and LIME</h2>', unsafe_allow_html=True)
-
-        # SHAP explanation
-        st.write("### SHAP Explanation")
-        shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
-        shap_values = shap_explainer.shap_values(scaled_average_stats)
-
-        # Plot SHAP values
-        st.set_option('deprecation.showPyplotGlobalUse', False)
-        shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
-        st.pyplot(bbox_inches='tight')
-
-        # LIME explanation
-        st.write("### LIME Explanation")
-        lime_explainer = LimeTabularExplainer(
-            scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values),
-            feature_names=average_stats.index,
-            class_names=SVM_model.classes_,
-            discretize_continuous=True
-        )
-        
-        lime_exp = lime_explainer.explain_instance(
-            data_row=scaled_average_stats[0],
-            predict_fn=SVM_model.predict_proba
-        )
-        
-        # Display LIME explanation as HTML
-        st.write(lime_exp.as_html(), unsafe_allow_html=True)
+    
+    # Add SHAP explanation
+    st.markdown("### 📊 Model Explanation using SHAP")
+    explainer = shap.KernelExplainer(SVM_model.predict_proba, shap.sample(scaled_average_stats, 100))
+    shap_values = explainer.shap_values(scaled_average_stats)
+    
+    # Plot SHAP values
+    plt.figure(figsize=(10, 6))
+    shap.summary_plot(shap_values[prediction[0]], scaled_average_stats, 
+                     feature_names=average_stats_df.columns,
+                     show=False)
+    st.pyplot(plt)
+    plt.clf()
+    
+    # Add LIME explanation
+    st.markdown("### 🔍 Model Explanation using LIME")
+    # Prepare training data for LIME
+    X_train = scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore'))
+    feature_names = df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore').columns.tolist()
+    
+    # Create LIME explainer
+    lime_explainer = LimeTabularExplainer(
+        X_train,
+        feature_names=feature_names,
+        class_names=['0', '1', '2', '3', '4', '5'],
+        mode='classification'
+    )
+    
+    # Generate LIME explanation
+    explanation = lime_explainer.explain_instance(
+        scaled_average_stats[0], 
+        SVM_model.predict_proba,
+        num_features=10
+    )
+    
+    # Plot LIME explanation
+    plt.figure(figsize=(10, 6))
+    explanation.as_pyplot_figure()
+    st.pyplot(plt)
+    
+    # Display feature importance summary
+    st.markdown("### 🏆 Key Factors Influencing the Prediction")
+    feature_importance = pd.DataFrame(
+        explanation.as_list(),
+        columns=['Feature', 'Impact']
+    ).sort_values('Impact', key=abs, ascending=False)
+    
+    st.write("Top influential features:")
+    st.dataframe(feature_importance)

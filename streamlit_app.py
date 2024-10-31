@@ -147,4 +147,4 @@ else:
         )
 
         #Display LIME explanation as HTML
-        st.write(lime_exp.as_html(), unsafe_allow_html=True)
+        #st.write(lime_exp.as_html(), unsafe_allow_html=True)

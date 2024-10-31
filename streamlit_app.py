@@ -113,7 +113,7 @@ else:
 
         # SHAP explanation
         st.write("### SHAP Explanation")
-        explainer = shap.Explainer(SVM_model)
+        explainer = shap.KernelExplainer(SVM_model)
         shap_values  = explainer(scaled_average_stats)
         st.write(shap_values)
 

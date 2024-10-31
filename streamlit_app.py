@@ -4,12 +4,21 @@ import joblib
 import numpy as np
 import shap
 from lime.lime_tabular import LimeTabularExplainer
-from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
-player_names = df['Player'].unique()
+
+# Define the expected feature names (these should match your model's training features exactly)
+expected_features = [
+    'Age', 'G', 'GS', 'MP', 'FG', 'FGA', 'FG%', '3P', '3PA', '3P%', '2P', '2PA',
+    '2P%', 'eFG%', 'FT', 'FTA', 'FT%', 'ORB', 'DRB', 'TRB', 'AST', 'STL', 'BLK',
+    'TOV', 'PF', 'PTS'
+]
+
+# Filter columns to include only expected features
+df_filtered = df[['Player'] + expected_features]
+player_names = df_filtered['Player'].unique()
 
 # Set custom NBA-themed page layout
 st.set_page_config(page_title="NBA Season Outcome Predictor", page_icon="🏀", layout="wide")
@@ -73,11 +82,11 @@ else:
     st.markdown('<p class="success-text">You have selected your roster! 🏀</p>', unsafe_allow_html=True)
     
     # Filter and display selected player stats
-    selected_players_df = df[df['Player'].isin(selected_players)]
+    selected_players_df = df_filtered[df_filtered['Player'].isin(selected_players)]
     
     # Calculate average stats and convert to DataFrame
-    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
-    average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
+    average_stats = selected_players_df[expected_features].mean()
+    average_stats_df = pd.DataFrame(average_stats).T
     
     st.write("### Average Stats for Selected Players:")
     st.dataframe(average_stats)
@@ -111,20 +120,17 @@ else:
     
     try:
         # Create background data for SHAP
-        background_data = shap.sample(df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore'), 100)
-        background_data = scaler.transform(background_data)
+        background_data = df_filtered[expected_features].sample(n=100)
+        background_data_scaled = scaler.transform(background_data)
         
         # Initialize the SHAP explainer
         explainer = shap.KernelExplainer(
             lambda x: SVM_model.predict_proba(x)[:, prediction[0]],
-            background_data
+            background_data_scaled
         )
         
         # Calculate SHAP values
         shap_values = explainer.shap_values(scaled_average_stats)
-        
-        # Create feature names
-        feature_names = list(average_stats_df.columns)
         
         # Create SHAP force plot
         st.write("SHAP Force Plot (Feature Impact):")
@@ -132,7 +138,7 @@ else:
             explainer.expected_value,
             shap_values,
             scaled_average_stats,
-            feature_names=feature_names,
+            feature_names=expected_features,
             matplotlib=True,
             show=False
         )
@@ -147,7 +153,7 @@ else:
                 values=shap_values[0],
                 base_values=explainer.expected_value,
                 data=scaled_average_stats[0],
-                feature_names=feature_names
+                feature_names=expected_features
             ),
             show=False
         )
@@ -161,14 +167,13 @@ else:
     st.markdown("### 🔍 Model Explanation using LIME")
     try:
         # Prepare training data for LIME
-        X_train = scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore'))
-        feature_names = df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore').columns.tolist()
+        X_train = scaler.transform(df_filtered[expected_features])
         
         # Create LIME explainer
         lime_explainer = LimeTabularExplainer(
             X_train,
-            feature_names=feature_names,
-            class_names=[str(i) for i in range(6)],  # Assuming 6 classes (0-5)
+            feature_names=expected_features,
+            class_names=[str(i) for i in range(6)],
             mode='classification'
         )
         

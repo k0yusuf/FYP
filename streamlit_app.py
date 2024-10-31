@@ -85,7 +85,7 @@ else:
     scaler = joblib.load('scaler.joblib')
 
     # Scale the features using the loaded scaler
-    scaled_average_stats = scaler.fit_transform(average_stats_df)
+    scaled_average_stats = scaler.transform(average_stats_df)
 
     # Predict the season outcome
     prediction = SVM_model.predict(scaled_average_stats)

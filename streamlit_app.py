@@ -108,49 +108,92 @@ else:
     
     # Add SHAP explanation
     st.markdown("### 📊 Model Explanation using SHAP")
-    explainer = shap.KernelExplainer(SVM_model.predict_proba, shap.sample(scaled_average_stats, 100))
-    shap_values = explainer.shap_values(scaled_average_stats)
     
-    # Plot SHAP values
-    plt.figure(figsize=(10, 6))
-    shap.summary_plot(shap_values[prediction[0]], scaled_average_stats, 
-                     feature_names=average_stats_df.columns,
-                     show=False)
-    st.pyplot(plt)
-    plt.clf()
+    try:
+        # Create background data for SHAP
+        background_data = shap.sample(df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore'), 100)
+        background_data = scaler.transform(background_data)
+        
+        # Initialize the SHAP explainer
+        explainer = shap.KernelExplainer(
+            lambda x: SVM_model.predict_proba(x)[:, prediction[0]],
+            background_data
+        )
+        
+        # Calculate SHAP values
+        shap_values = explainer.shap_values(scaled_average_stats)
+        
+        # Create feature names
+        feature_names = list(average_stats_df.columns)
+        
+        # Create SHAP force plot
+        st.write("SHAP Force Plot (Feature Impact):")
+        force_plot = shap.force_plot(
+            explainer.expected_value,
+            shap_values,
+            scaled_average_stats,
+            feature_names=feature_names,
+            matplotlib=True,
+            show=False
+        )
+        plt.tight_layout()
+        st.pyplot(plt)
+        plt.clf()
+        
+        # Create SHAP waterfall plot
+        st.write("SHAP Waterfall Plot (Feature Contribution):")
+        shap.waterfall_plot(
+            shap.Explanation(
+                values=shap_values[0],
+                base_values=explainer.expected_value,
+                data=scaled_average_stats[0],
+                feature_names=feature_names
+            ),
+            show=False
+        )
+        st.pyplot(plt)
+        plt.clf()
+        
+    except Exception as e:
+        st.error(f"SHAP visualization error: {str(e)}")
     
     # Add LIME explanation
     st.markdown("### 🔍 Model Explanation using LIME")
-    # Prepare training data for LIME
-    X_train = scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore'))
-    feature_names = df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore').columns.tolist()
-    
-    # Create LIME explainer
-    lime_explainer = LimeTabularExplainer(
-        X_train,
-        feature_names=feature_names,
-        class_names=['0', '1', '2', '3', '4', '5'],
-        mode='classification'
-    )
-    
-    # Generate LIME explanation
-    explanation = lime_explainer.explain_instance(
-        scaled_average_stats[0], 
-        SVM_model.predict_proba,
-        num_features=10
-    )
-    
-    # Plot LIME explanation
-    plt.figure(figsize=(10, 6))
-    explanation.as_pyplot_figure()
-    st.pyplot(plt)
-    
-    # Display feature importance summary
-    st.markdown("### 🏆 Key Factors Influencing the Prediction")
-    feature_importance = pd.DataFrame(
-        explanation.as_list(),
-        columns=['Feature', 'Impact']
-    ).sort_values('Impact', key=abs, ascending=False)
-    
-    st.write("Top influential features:")
-    st.dataframe(feature_importance)
+    try:
+        # Prepare training data for LIME
+        X_train = scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore'))
+        feature_names = df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore').columns.tolist()
+        
+        # Create LIME explainer
+        lime_explainer = LimeTabularExplainer(
+            X_train,
+            feature_names=feature_names,
+            class_names=[str(i) for i in range(6)],  # Assuming 6 classes (0-5)
+            mode='classification'
+        )
+        
+        # Generate LIME explanation
+        explanation = lime_explainer.explain_instance(
+            scaled_average_stats[0], 
+            SVM_model.predict_proba,
+            num_features=10
+        )
+        
+        # Plot LIME explanation
+        st.write("LIME Feature Importance Plot:")
+        plt.figure(figsize=(10, 6))
+        explanation.as_pyplot_figure()
+        st.pyplot(plt)
+        
+        # Display feature importance summary
+        st.markdown("### 🏆 Key Factors Influencing the Prediction")
+        feature_importance = pd.DataFrame(
+            explanation.as_list(),
+            columns=['Feature', 'Impact']
+        ).sort_values('Impact', key=abs, ascending=False)
+        
+        st.write("Top influential features:")
+        st.dataframe(feature_importance)
+        
+    except Exception as e:
+        st.error(f"LIME visualization error: {str(e)}")

@@ -113,7 +113,7 @@ else:
 
         # SHAP explanation
         st.write("### SHAP Explanation")
-        shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
+        #shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
         shap_values = shap_explainer.shap_values(scaled_average_stats)
 
         # Plot SHAP values
@@ -122,18 +122,18 @@ else:
         st.pyplot(bbox_inches='tight')
 
         # LIME explanation
-        st.write("### LIME Explanation")
-        lime_explainer = LimeTabularExplainer(
-            scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values),
-            feature_names=average_stats.index,
-            class_names=SVM_model.classes_,
-            discretize_continuous=True
-        )
+        #st.write("### LIME Explanation")
+        #lime_explainer = LimeTabularExplainer(
+            #scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values),
+            #feature_names=average_stats.index,
+            #class_names=SVM_model.classes_,
+            #discretize_continuous=True
+        #)
 
-        lime_exp = lime_explainer.explain_instance(
-            data_row=scaled_average_stats[0],
-            predict_fn=SVM_model.predict_proba
-        )
+        #lime_exp = lime_explainer.explain_instance(
+         #   data_row=scaled_average_stats[0],
+          #  predict_fn=SVM_model.predict_proba
+        #)
 
         # Display LIME explanation as HTML
-        st.write(lime_exp.as_html(), unsafe_allow_html=True)
+        #st.write(lime_exp.as_html(), unsafe_allow_html=True)

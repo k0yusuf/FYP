@@ -104,30 +104,38 @@ else:
     st.write(f"### Predicted Outcome: **{prediction[0]}**")
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
-    # Button to show SHAP waterfall plot explanation
-    if st.button("Show SHAP Waterfall Explanation"):
-        st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP</h2>', unsafe_allow_html=True)
+# Button to show SHAP waterfall plot explanation
+if st.button("Show SHAP Waterfall Explanation"):
+    st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP</h2>', unsafe_allow_html=True)
 
-        # SHAP Kernel Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
-        
-        # Generate SHAP values for the selected prediction instance
-        shap_values = explainer.shap_values(scaled_average_stats)
-
-        # SHAP waterfall plot for the class with the highest probability
-        st.write("### SHAP Waterfall Plot")
-        shap_class_index = np.argmax(prediction_proba[0])
+    # SHAP Kernel Explainer
+    explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
     
+    # Generate SHAP values for the selected prediction instance
+    shap_values = explainer.shap_values(scaled_average_stats)
+
+    # Check for the number of classes
+    if len(shap_values) > 1:
+        # Select the class with the highest probability
+        shap_class_index = np.argmax(prediction_proba[0])
+    else:
+        # If only one class, select the first element
+        shap_class_index = 0
+
+    # SHAP waterfall plot for the selected class
+    st.write("### SHAP Waterfall Plot")
+
     # Limit to the top 20 most important features
-        shap_values_selected = shap_values[shap_class_index][0]
-        top_features = np.argsort(np.abs(shap_values_selected))[-20:]
-        shap_explanation = shap.Explanation(
-            values=shap_values_selected[top_features], 
-            base_values=explainer.expected_value[shap_class_index], 
-            feature_names=average_stats_df.columns[top_features]
+    shap_values_selected = shap_values[shap_class_index][0]
+    top_features = np.argsort(np.abs(shap_values_selected))[-20:]
+    shap_explanation = shap.Explanation(
+        values=shap_values_selected[top_features], 
+        base_values=explainer.expected_value[shap_class_index], 
+        feature_names=average_stats_df.columns[top_features]
     )
 
     # Render the waterfall plot for the top features
-        shap.waterfall_plot(shap_explanation)
-        st.pyplot()
+    shap.waterfall_plot(shap_explanation)
+    st.pyplot()
+
 

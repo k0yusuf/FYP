@@ -81,15 +81,15 @@ else:
     st.dataframe(average_stats)
 
     # Load the SVM model and scaler
-    SVM_model = joblib.load('svm_model (1).joblib')
-    scaler = joblib.load('scaler.joblib')
+    SVM_model = joblib.load('rf_model.joblib')
+    #scaler = joblib.load('scaler.joblib')
 
     # Scale the features using the loaded scaler
-    scaled_average_stats = scaler.transform(average_stats_df)
+    #scaled_average_stats = scaler.transform(average_stats_df)
 
     # Predict the season outcome
-    prediction = SVM_model.predict(scaled_average_stats)
-    prediction_proba = SVM_model.predict_proba(scaled_average_stats)
+    prediction = SVM_model.predict(average_stats)
+    prediction_proba = SVM_model.predict_proba(average_stats)
 
     # Display prediction possibilities with confidence
     outcome_df = pd.DataFrame({
@@ -112,7 +112,7 @@ if st.button("Show SHAP Waterfall Explanation"):
     explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
     
     # Generate SHAP values for the selected prediction instance
-    shap_values = explainer.shap_values(scaled_average_stats)
+    shap_values = explainer.shap_values(average_stats)
 
     # Check for the number of classes
     if len(shap_values) > 1:

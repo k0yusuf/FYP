@@ -6,3 +6,4 @@ keras
 tensorflow
 shap
 lime
+matplotlib

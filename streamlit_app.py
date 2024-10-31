@@ -129,8 +129,8 @@ else:
         np.shape(shap_values)
 
     #Plot SHAP values
-        shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
-        st.pyplot(bbox_inches='tight')  
+        #shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
+        #st.pyplot(bbox_inches='tight')  
         
         #LIME explanation
         st.write("### LIME Explanation")

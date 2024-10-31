@@ -109,23 +109,23 @@ else:
 # Button to show explanation
     if st.button("Show Prediction Explanation"):
     # Separate page for explanation
-    st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP and LIME</h2>', unsafe_allow_html=True)
+        st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP and LIME</h2>', unsafe_allow_html=True)
 
     # SHAP explanation
-    st.write("### SHAP Explanation")
+        st.write("### SHAP Explanation")
 
     # Define a prediction function for SHAP
-    def predict_proba_shap(X):
-        return SVM_model.predict_proba(X)
+        def predict_proba_shap(X):
+            return SVM_model.predict_proba(X)
 
     # Use KernelExplainer for SHAP
-    shap_explainer = shap.KernelExplainer(predict_proba_shap, shap.kmeans(scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values), 10))
-    shap_values = shap_explainer.shap_values(scaled_average_stats)
+        shap_explainer = shap.KernelExplainer(predict_proba_shap, shap.kmeans(scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values), 10))
+        shap_values = shap_explainer.shap_values(scaled_average_stats)
 
     # Plot SHAP values
-    st.set_option('deprecation.showPyplotGlobalUse', False)
-    shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
-    st.pyplot(bbox_inches='tight')
+        st.set_option('deprecation.showPyplotGlobalUse', False)
+        shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
+        st.pyplot(bbox_inches='tight')
 
 
         #shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))

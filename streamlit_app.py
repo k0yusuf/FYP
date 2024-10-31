@@ -119,7 +119,7 @@ else:
             return SVM_model.predict_proba(X)
 
     # Use KernelExplainer for SHAP
-        shap_explainer = shap.KernelExplainer(predict_proba_shap, shap.kmeans(scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values), 10))
+        shap_explainer = shap.KernelExplainer(predict_proba_shap, shap.kmeans(scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role'], axis=1).values), 10))
         shap_values = shap_explainer.shap_values(scaled_average_stats)
 
     # Plot SHAP values

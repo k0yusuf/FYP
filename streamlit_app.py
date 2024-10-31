@@ -3,18 +3,11 @@ import pandas as pd
 import joblib
 import numpy as np
 import shap
-from lime.lime_tabular import LimeTabularExplainer
 from sklearn.preprocessing import StandardScaler
 
 # Load the dataset containing player stats
-# Load the dataset containing player stats
-df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
-df = df.drop(columns=['Unnamed: 0'], errors='ignore')
-
-# Remove commas from numeric columns and convert them to floats
-
+df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
 player_names = df['Player'].unique()
-
 
 # Set custom NBA-themed page layout
 st.set_page_config(page_title="NBA Season Outcome Predictor", page_icon="🏀", layout="wide")
@@ -111,42 +104,20 @@ else:
     st.write(f"### Predicted Outcome: **{prediction[0]}**")
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
-# Button to show explanation
-    if st.button("Show Prediction Explanation"):
-    # Separate page for explanation
-        st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP and LIME</h2>', unsafe_allow_html=True)
+    # Button to show SHAP waterfall plot explanation
+    if st.button("Show SHAP Waterfall Explanation"):
+        st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP</h2>', unsafe_allow_html=True)
 
-    # SHAP explanation
-        st.write("### SHAP Explanation")
-
-    # Define a prediction function for SHAP
-        def predict_proba_shap(X):
-            return SVM_model.predict_proba(X)
-
-    #Use KernelExplainer for SHAP
-        shap_explainer = shap.KernelExplainer(predict_proba_shap, shap.kmeans(scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values), 10))
-        shap_values = shap_explainer.shap_values(scaled_average_stats)
-        shap.plots.waterfall(shap_explainer) 
+        # SHAP Kernel Explainer
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
         
+        # Generate SHAP values for the selected prediction instance
+        shap_values = explainer.shap_values(scaled_average_stats)
 
-    #Plot SHAP values
-        #shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
-        #st.pyplot(bbox_inches='tight')  
-        
-        #LIME explanation
-        st.write("### LIME Explanation")
-        
-        lime_explainer = LimeTabularExplainer(
-            scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values),
-            feature_names=average_stats.index,
-            class_names=SVM_model.classes_,
-            discretize_continuous=True
-        )
-
-        lime_exp = lime_explainer.explain_instance(
-           data_row=scaled_average_stats[0],
-          predict_fn=SVM_model.predict_proba
-        ) 
-
-        #Display LIME explanation as HTML
-        #st.write(lime_exp.as_html(), unsafe_allow_html=True)
+        # SHAP waterfall plot for the class with the highest probability
+        st.write("### SHAP Waterfall Plot")
+        shap_class_index = np.argmax(prediction_proba[0])
+        shap.waterfall_plot(shap.Explanation(values=shap_values[shap_class_index][0], 
+                                             base_values=explainer.expected_value[shap_class_index], 
+                                             feature_names=average_stats_df.columns))
+        st.pyplot()

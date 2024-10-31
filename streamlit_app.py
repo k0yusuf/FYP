@@ -7,9 +7,17 @@ from lime.lime_tabular import LimeTabularExplainer
 from sklearn.preprocessing import StandardScaler
 
 # Load the dataset containing player stats
+# Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv')
-df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
+df = df.drop(columns=['Unnamed: 0'], errors='ignore')
+
+# Remove commas from numeric columns and convert them to floats
+for col in df.columns:
+    if df[col].dtype == 'object':  # Check if the column is of object type
+        df[col] = df[col].str.replace(',', '').astype(float, errors='ignore')
+
 player_names = df['Player'].unique()
+
 
 # Set custom NBA-themed page layout
 st.set_page_config(page_title="NBA Season Outcome Predictor", page_icon="🏀", layout="wide")

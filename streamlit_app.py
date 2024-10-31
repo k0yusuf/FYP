@@ -109,7 +109,8 @@ else:
         st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP</h2>', unsafe_allow_html=True)
 
         # SHAP Kernel Explainer
-        explainer = shap.kmeans(scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values), 10)     
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
+        
         # Generate SHAP values for the selected prediction instance
         shap_values = explainer.shap_values(scaled_average_stats)
 

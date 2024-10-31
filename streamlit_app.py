@@ -128,7 +128,6 @@ else:
         shap_values = shap_explainer.shap_values(scaled_average_stats)
 
     # Plot SHAP values
-        st.set_option('deprecation.showPyplotGlobalUse', False)
         shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
         st.pyplot(bbox_inches='tight')
 

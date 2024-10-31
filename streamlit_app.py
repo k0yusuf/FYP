@@ -128,8 +128,8 @@ else:
         shap_values = shap_explainer.shap_values(scaled_average_stats)
 
     # Plot SHAP values
-        shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
-        st.pyplot(bbox_inches='tight')
+        #shap.summary_plot(shap_values, scaled_average_stats, plot_type="bar", class_names=SVM_model.classes_)
+        #st.pyplot(bbox_inches='tight')
 
 
         #shap_explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))

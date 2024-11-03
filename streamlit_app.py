@@ -114,5 +114,3 @@ else:
         explainer = shap.Explainer(SVM_model.predict_proba, average_stats_df.values)
         shap_values = explainer.shap_values(average_stats_df)
         shap.plots.waterfall(shap_values[0])
-
-        

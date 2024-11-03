@@ -106,26 +106,26 @@ else:
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
-    # Button for SHAP-based suggestions
+       # Button for SHAP-based suggestions
     if st.button('Show Suggestions'):
         # SHAP Explainer
         explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df.values)
         shap_values = explainer.shap_values(average_stats_df)
-
-        # Class index for the most probable predicted outcome
-        class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
-
-        shap_feature_impact = shap_values[class_index][0]
-        top_positive_features = np.argsort(shap_feature_impact)[-3:]  # Top 5 strengths
-        top_negative_features = np.argsort(shap_feature_impact)[:3]   # Top 5 weaknesses
-
+    
+        # Access the correct class index safely
+        class_index = np.argmax(SVM_model.predict_proba(average_stats_df)[0]) if SVM_model.predict_proba(average_stats_df).shape[1] > 1 else 0
+    
+        shap_feature_impact = shap_values[class_index][0] if len(shap_values) > 1 else shap_values[0]
+        top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
+        top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
+    
         # Display strengths
         st.write("### Strengths of Your Team")
         for feature_idx in top_positive_features:
             feature_name = average_stats_df.columns[feature_idx]
             contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
             st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
-
+    
         # Display weaknesses and suggest players to improve them
         st.write("### Suggested Improvements for Your Team")
         for feature_idx in top_negative_features:

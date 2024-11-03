@@ -116,8 +116,8 @@ else:
         class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
 
         shap_feature_impact = shap_values[class_index][0]
-        top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
-        top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
+        top_positive_features = np.argsort(shap_feature_impact)[-3:]  # Top 5 strengths
+        top_negative_features = np.argsort(shap_feature_impact)[:3]   # Top 5 weaknesses
 
         # Display strengths
         st.write("### Strengths of Your Team")

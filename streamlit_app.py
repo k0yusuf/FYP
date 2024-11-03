@@ -116,7 +116,7 @@ else:
     
         # Generate a SHAP waterfall plot for the class with the highest probability
         class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
-        shap_waterfall_values = shap_values[class_index][0]  # Values for the highest probability class
+        shap_waterfall_values = shap_values[class_index]  # Values for the highest probability class
     
         # Plot waterfall for the first instance
         shap.initjs()

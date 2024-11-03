@@ -113,16 +113,6 @@ else:
         # SHAP Explainer
         explainer = shap.Explainer(SVM_model.predict_proba, average_stats_df.values)
         shap_values = explainer.shap_values(average_stats_df)
-    
-        # Generate a SHAP waterfall plot for the class with the highest probability
-        class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
-        shap_waterfall_values = shap_values[0]  # Values for the highest probability class
-    
-        # Plot waterfall for the first instance
-        shap.initjs()
-        shap.waterfall_plot(shap.Explanation(values=shap_waterfall_values, 
-                                             base_values=explainer.expected_value[class_index], 
-                                             feature_names=average_stats_df.columns))
+        shap.plots.waterfall(shap_values[0])
+
         
-        # Display the plot in Streamlit
-        st.pyplot(bbox_inches="tight")

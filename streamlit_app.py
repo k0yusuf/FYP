@@ -111,12 +111,12 @@ else:
     # Button for SHAP-based suggestions
     if st.button('Show Suggestions'):
         # SHAP Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df.values)
+        explainer = shap.Explainer(SVM_model.predict_proba, average_stats_df.values)
         shap_values = explainer.shap_values(average_stats_df)
     
         # Generate a SHAP waterfall plot for the class with the highest probability
         class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
-        shap_waterfall_values = shap_values[class_index]  # Values for the highest probability class
+        shap_waterfall_values = shap_values[0]  # Values for the highest probability class
     
         # Plot waterfall for the first instance
         shap.initjs()

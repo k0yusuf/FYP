@@ -106,6 +106,12 @@ else:
     st.write(f"### Predicted Outcome: **{prediction[0]}**")
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
+# SHAP Explainer
+explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
+shap_values = explainer.shap_values(scaled_average_stats)
+
+# Class index for the most probable predicted outcome
+class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
 
 shap_feature_impact = shap_values[class_index][0]
 top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths

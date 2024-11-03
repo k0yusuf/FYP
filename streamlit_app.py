@@ -87,7 +87,7 @@ else:
     scaler = joblib.load('scaler.joblib')
 
     # Scale the features using the loaded scaler
-    scaled_average_stats = scaler.transform(average_stats_df)
+    scaled_average_stats = scaler.fit_transform(average_stats_df)
 
     # Predict the season outcome
     prediction = SVM_model.predict(scaled_average_stats)
@@ -107,7 +107,7 @@ else:
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
 # SHAP Explainer
-explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome'], axis=1).values))
+explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
 shap_values = explainer.shap_values(scaled_average_stats)
 
 # Class index for the most probable predicted outcome

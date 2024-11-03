@@ -119,16 +119,16 @@ else:
         top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
         top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
     
-        # Display strengths
-        st.write("### Strengths of Your Team")
-        for feature_idx in top_positive_features:
-            feature_name = average_stats_df.columns[feature_idx]
-            contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
-            st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
+           # Display strengths
+    st.write("### Strengths of Your Team")
+    for feature_idx in top_positive_features:
+        feature_name = str(average_stats_df.columns[feature_idx]).capitalize()  # Convert to string and capitalize
+        contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
+        st.write(f"- **{feature_name}** is strong due to players: {', '.join(contributing_players)}")
     
-        # Display weaknesses and suggest players to improve them
-        st.write("### Suggested Improvements for Your Team")
-        for feature_idx in top_negative_features:
-            feature_name = average_stats_df.columns[feature_idx]
-            suggested_players = df.nlargest(3, feature_name)['Player']
-            st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")
+    # Display weaknesses and suggest players to improve them
+    st.write("### Suggested Improvements for Your Team")
+    for feature_idx in top_negative_features:
+        feature_name = str(average_stats_df.columns[feature_idx]).capitalize()  # Convert to string and capitalize
+        suggested_players = df.nlargest(3, feature_name)['Player']
+        st.write(f"- **{feature_name}** needs improvement. Suggested players: {', '.join(suggested_players)}")

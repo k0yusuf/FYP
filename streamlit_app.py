@@ -64,8 +64,8 @@ selected_players = st.multiselect(
 )
 
 # Load model and scaler
-SVM_model = joblib.load('svm_model (1).joblib')
-scaler = joblib.load('scaler.joblib')
+SVM_model = joblib.load('rf_model.joblib')
+#scaler = joblib.load('scaler.joblib')
 
 # Check for player selection limits
 if len(selected_players) < 10:
@@ -85,13 +85,13 @@ else:
     st.dataframe(average_stats)
 
     # Scale the features
-    scaled_average_stats = scaler.transform(average_stats_df)
+    #scaled_average_stats = scaler.transform(average_stats_df)
 
     # Button for Prediction
     if st.button('Predict Season Outcome'):
         # Predict the season outcome
-        prediction = SVM_model.predict(scaled_average_stats)
-        prediction_proba = SVM_model.predict_proba(scaled_average_stats)
+        prediction = SVM_model.predict(average_stats_df)
+        prediction_proba = SVM_model.predict_proba(average_stats_df)
 
         # Display prediction possibilities with confidence
         outcome_df = pd.DataFrame({
@@ -109,11 +109,11 @@ else:
     # Button for SHAP-based suggestions
     if st.button('Show Suggestions'):
         # SHAP Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
-        shap_values = explainer.shap_values(scaled_average_stats)
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df.values))
+        shap_values = explainer.shap_values(average_stats_df)
 
         # Class index for the most probable predicted outcome
-        class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
+        class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
 
         shap_feature_impact = shap_values[class_index][0]
         top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths

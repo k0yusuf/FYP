@@ -113,6 +113,7 @@ else:
 
 # Class index for the most probable predicted outcome
     class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
+    class_index = 1 if len(shap_values) == 2 else np.argmax(SVM_model.predict_proba(scaled_average_stats))
 
     shap_feature_impact = shap_values[class_index][0]
     top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths

@@ -5,6 +5,8 @@ import numpy as np
 import shap
 from sklearn.preprocessing import StandardScaler
 from lime.lime_tabular import LimeTabularExplainer
+import matplotlib.pyplot as plt
+
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -106,29 +108,21 @@ else:
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
-       # Button for SHAP-based suggestions
+    # Button for SHAP-based suggestions
     if st.button('Show Suggestions'):
         # SHAP Explainer
         explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df.values)
         shap_values = explainer.shap_values(average_stats_df)
     
-        # Access the correct class index safely
-        class_index = np.argmax(SVM_model.predict_proba(average_stats_df)[0]) if SVM_model.predict_proba(average_stats_df).shape[1] > 1 else 0
+        # Generate a SHAP waterfall plot for the class with the highest probability
+        class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
+        shap_waterfall_values = shap_values[class_index][0]  # Values for the highest probability class
     
-        shap_feature_impact = shap_values[class_index][0] if len(shap_values) > 1 else shap_values[0]
-        top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
-        top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
-    
-           # Display strengths
-    st.write("### Strengths of Your Team")
-    for feature_idx in top_positive_features:
-        feature_name = str(average_stats_df.columns[feature_idx]).capitalize()  # Convert to string and capitalize
-        contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
-        st.write(f"- **{feature_name}** is strong due to players: {', '.join(contributing_players)}")
-    
-    # Display weaknesses and suggest players to improve them
-    st.write("### Suggested Improvements for Your Team")
-    for feature_idx in top_negative_features:
-        feature_name = str(average_stats_df.columns[feature_idx]).capitalize()  # Convert to string and capitalize
-        suggested_players = df.nlargest(3, feature_name)['Player']
-        st.write(f"- **{feature_name}** needs improvement. Suggested players: {', '.join(suggested_players)}")
+        # Plot waterfall for the first instance
+        shap.initjs()
+        shap.waterfall_plot(shap.Explanation(values=shap_waterfall_values, 
+                                             base_values=explainer.expected_value[class_index], 
+                                             feature_names=average_stats_df.columns))
+        
+        # Display the plot in Streamlit
+        st.pyplot(bbox_inches="tight")

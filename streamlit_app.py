@@ -6,7 +6,6 @@ import shap
 from sklearn.preprocessing import StandardScaler
 from lime.lime_tabular import LimeTabularExplainer
 
-
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
 player_names = df['Player'].unique()
@@ -74,61 +73,61 @@ elif len(selected_players) > 15:
 else:
     st.markdown('<p class="success-text">You have selected your roster! 🏀</p>', unsafe_allow_html=True)
 
-    # Filter and display selected player stats
-    selected_players_df = df[df['Player'].isin(selected_players)]
+    # Button for Prediction
+    if st.button('Predict Season Outcome'):
+        # Filter and display selected player stats
+        selected_players_df = df[df['Player'].isin(selected_players)]
 
-    # Calculate average stats and convert to DataFrame
-    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
-    average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
+        # Calculate average stats and convert to DataFrame
+        average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
+        average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
 
-    st.write("### Average Stats for Selected Players:")
-    st.dataframe(average_stats)
+        st.write("### Average Stats for Selected Players:")
+        st.dataframe(average_stats)
 
-    # Load the SVM model and scaler
+        # Scale the features using the loaded scaler
+        scaled_average_stats = scaler.transform(average_stats_df)
 
+        # Predict the season outcome
+        prediction = SVM_model.predict(scaled_average_stats)
+        prediction_proba = SVM_model.predict_proba(scaled_average_stats)
 
-    # Scale the features using the loaded scaler
-    scaled_average_stats = scaler.transform(average_stats_df)
+        # Display prediction possibilities with confidence
+        outcome_df = pd.DataFrame({
+            'Outcome': SVM_model.classes_,
+            'Confidence (%)': prediction_proba[0] * 100
+        })
+        st.write("### Prediction Possibilities and Confidence:")
+        st.table(outcome_df)
 
-    # Predict the season outcome
-    prediction = SVM_model.predict(scaled_average_stats)
-    prediction_proba = SVM_model.predict_proba(scaled_average_stats)
+        # Show final prediction outcome
+        st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
+        st.write(f"### Predicted Outcome: **{prediction[0]}**")
+        st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
-    # Display prediction possibilities with confidence
-    outcome_df = pd.DataFrame({
-        'Outcome': SVM_model.classes_,
-        'Confidence (%)': prediction_proba[0] * 100
-    })
-    st.write("### Prediction Possibilities and Confidence:")
-    st.table(outcome_df)
+    # Button for SHAP-based suggestions
+    if st.button('Show Suggestions'):
+        # SHAP Explainer
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
+        shap_values = explainer.shap_values(scaled_average_stats)
 
-    # Show final prediction outcome
-    st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
-    st.write(f"### Predicted Outcome: **{prediction[0]}**")
-    st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
+        # Class index for the most probable predicted outcome
+        class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
 
-# SHAP Explainer
-    explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
-    shap_values = explainer.shap_values(scaled_average_stats)
+        shap_feature_impact = shap_values[class_index][0]
+        top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
+        top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
 
-# Class index for the most probable predicted outcome
-    class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
-    class_index = 1 if len(shap_values) == 2 else np.argmax(SVM_model.predict_proba(scaled_average_stats))
+        # Display strengths
+        st.write("### Strengths of Your Team")
+        for feature_idx in top_positive_features:
+            feature_name = average_stats_df.columns[feature_idx]
+            contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
+            st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
 
-    shap_feature_impact = shap_values[class_index][0]
-    top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
-    top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
-
-# Display strengths
-    st.write("### Strengths of Your Team")
-    for feature_idx in top_positive_features:
-        feature_name = average_stats_df.columns[feature_idx]
-        contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
-        st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
-
-# Display weaknesses and suggest players to improve them
-    st.write("### Suggested Improvements for Your Team")
-    for feature_idx in top_negative_features:
-        feature_name = average_stats_df.columns[feature_idx]
-        suggested_players = df.nlargest(3, feature_name)['Player']
-        st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")
+        # Display weaknesses and suggest players to improve them
+        st.write("### Suggested Improvements for Your Team")
+        for feature_idx in top_negative_features:
+            feature_name = average_stats_df.columns[feature_idx]
+            suggested_players = df.nlargest(3, feature_name)['Player']
+            st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")

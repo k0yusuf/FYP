@@ -62,6 +62,8 @@ selected_players = st.multiselect(
     max_selections=15,
     help='You must select between 10 and 15 players.'
 )
+
+# Load model and scaler
 SVM_model = joblib.load('svm_model (1).joblib')
 scaler = joblib.load('scaler.joblib')
 
@@ -73,21 +75,20 @@ elif len(selected_players) > 15:
 else:
     st.markdown('<p class="success-text">You have selected your roster! 🏀</p>', unsafe_allow_html=True)
 
+    # Filter selected player stats and calculate average
+    selected_players_df = df[df['Player'].isin(selected_players)]
+    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
+    average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
+
+    # Display average stats
+    st.write("### Average Stats for Selected Players:")
+    st.dataframe(average_stats)
+
+    # Scale the features
+    scaled_average_stats = scaler.transform(average_stats_df)
+
     # Button for Prediction
     if st.button('Predict Season Outcome'):
-        # Filter and display selected player stats
-        selected_players_df = df[df['Player'].isin(selected_players)]
-
-        # Calculate average stats and convert to DataFrame
-        average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
-        average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
-
-        st.write("### Average Stats for Selected Players:")
-        st.dataframe(average_stats)
-
-        # Scale the features using the loaded scaler
-        scaled_average_stats = scaler.transform(average_stats_df)
-
         # Predict the season outcome
         prediction = SVM_model.predict(scaled_average_stats)
         prediction_proba = SVM_model.predict_proba(scaled_average_stats)

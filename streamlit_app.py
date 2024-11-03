@@ -109,7 +109,7 @@ else:
     # Button for SHAP-based suggestions
     if st.button('Show Suggestions'):
         # SHAP Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df.values))
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df.values)
         shap_values = explainer.shap_values(average_stats_df)
 
         # Class index for the most probable predicted outcome

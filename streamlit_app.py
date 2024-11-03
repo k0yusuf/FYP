@@ -63,6 +63,8 @@ selected_players = st.multiselect(
     max_selections=15,
     help='You must select between 10 and 15 players.'
 )
+SVM_model = joblib.load('svm_model (1).joblib')
+scaler = joblib.load('scaler.joblib')
 
 # Check for player selection limits
 if len(selected_players) < 10:
@@ -83,8 +85,7 @@ else:
     st.dataframe(average_stats)
 
     # Load the SVM model and scaler
-    SVM_model = joblib.load('svm_model (1).joblib')
-    scaler = joblib.load('scaler.joblib')
+
 
     # Scale the features using the loaded scaler
     scaled_average_stats = scaler.fit_transform(average_stats_df)

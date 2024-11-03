@@ -103,21 +103,3 @@ else:
     st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
     st.write(f"### Predicted Outcome: **{prediction[0]}**")
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
-
-    # Button to show SHAP waterfall plot explanation
-    if st.button("Show SHAP Waterfall Explanation"):
-        st.markdown('<h2 class="sub-title">📊 Model Explanation with SHAP</h2>', unsafe_allow_html=True)
-
-        # SHAP Kernel Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
-        
-        # Generate SHAP values for the selected prediction instance
-        shap_values = explainer.shap_values(scaled_average_stats)
-
-        # SHAP waterfall plot for the class with the highest probability
-        st.write("### SHAP Waterfall Plot")
-        shap_class_index = np.argmax(prediction_proba[0])
-        shap.waterfall_plot(shap.Explanation(values=shap_values[shap_class_index][0], 
-                                             base_values=explainer.expected_value[shap_class_index], 
-                                             feature_names=average_stats_df.columns))
-        st.pyplot()

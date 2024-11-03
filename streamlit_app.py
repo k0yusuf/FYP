@@ -4,6 +4,8 @@ import joblib
 import numpy as np
 import shap
 from sklearn.preprocessing import StandardScaler
+from lime.lime_tabular import LimeTabularExplainer
+
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -103,3 +105,22 @@ else:
     st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
     st.write(f"### Predicted Outcome: **{prediction[0]}**")
     st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
+
+
+shap_feature_impact = shap_values[class_index][0]
+top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
+top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
+
+# Display strengths
+st.write("### Strengths of Your Team")
+for feature_idx in top_positive_features:
+    feature_name = average_stats_df.columns[feature_idx]
+    contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
+    st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
+
+# Display weaknesses and suggest players to improve them
+st.write("### Suggested Improvements for Your Team")
+for feature_idx in top_negative_features:
+    feature_name = average_stats_df.columns[feature_idx]
+    suggested_players = df.nlargest(3, feature_name)['Player']
+    st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")

@@ -103,13 +103,13 @@ else:
 
     # Button for team strength analysis and player suggestions using SHAP
     if st.button('Analyze Team Strengths and Get Player Suggestions'):
-        # Use KernelExplainer to calculate SHAP values
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df)
-        shap_values = explainer.shap_values(average_stats_df, nsamples=100)
+        # Use PermutationExplainer to calculate SHAP values
+        explainer = shap.PermutationExplainer(SVM_model.predict_proba, average_stats_df)
+        shap_values = explainer(average_stats_df)
 
         # Determine the class index with the highest prediction probability to focus on
         class_index = np.argmax(prediction_proba)
-        shap_contributions = shap_values[class_index][0]  # Get SHAP values for the current class
+        shap_contributions = shap_values.values[0, :, class_index]  # Get SHAP values for the current class
 
         # Separate positive and negative feature contributions
         pos_contrib_features = []

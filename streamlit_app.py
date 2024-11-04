@@ -84,7 +84,7 @@ else:
         prediction_proba = SVM_model.predict_proba(average_stats_df)
         # Display prediction possibilities with confidence
         outcome_df = pd.DataFrame({
-            'Outcome': SVMmodel.classes,
+            'Outcome': SVM_model.classes,
             'Confidence (%)': prediction_proba[0] * 100
         })
         st.write("### Prediction Possibilities and Confidence:")

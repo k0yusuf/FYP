@@ -3,11 +3,7 @@ import pandas as pd
 import joblib
 import numpy as np
 import shap
-from lime.lime_tabular import LimeTabularExplainer
 import matplotlib.pyplot as plt
-import random
-
-
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -66,9 +62,8 @@ selected_players = st.multiselect(
     help='You must select between 10 and 15 players.'
 )
 
-# Load model and scaler
+# Load model
 SVM_model = joblib.load('rf_model.joblib')
-#scaler = joblib.load('scaler.joblib')
 
 # Check for player selection limits
 if len(selected_players) < 10:
@@ -86,9 +81,6 @@ else:
     # Display average stats
     st.write("### Average Stats for Selected Players:")
     st.dataframe(average_stats)
-
-    # Scale the features
-    #scaled_average_stats = scaler.transform(average_stats_df)
 
     # Button for Prediction
     if st.button('Predict Season Outcome'):
@@ -109,53 +101,47 @@ else:
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
-    # Button for SHAP-based suggestions
-    if st.button('Show Suggestions'):
-        # SHAP Explainer
-        explainer = shap.Explainer(SVM_model.predict_proba, average_stats_df.values)
-        shap_values = explainer.shap_values(average_stats_df)
-        shap.plots.waterfall(shap_values[0])
+    # Button for team strength analysis and player suggestions using SHAP
     if st.button('Analyze Team Strengths and Get Player Suggestions'):
-    # Use SHAP to analyze feature importances
-    explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df)
-    shap_values = explainer.shap_values(average_stats_df, nsamples=100)
-    
-    # Determine the class index for highest probability to focus on its SHAP values
-    class_index = np.argmax(prediction_proba)
-    shap_contributions = shap_values[class_index][0]  # Extract shap values for current prediction
+        # Use KernelExplainer to calculate SHAP values
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, average_stats_df)
+        shap_values = explainer.shap_values(average_stats_df, nsamples=100)
 
-    # Separate positive and negative contributions
-    pos_contrib_features = []
-    neg_contrib_features = []
-    
-    # Determine strengths and weaknesses based on SHAP values
-    for i, (feature, contribution) in enumerate(zip(average_stats_df.columns, shap_contributions)):
-        if contribution > 0:
-            pos_contrib_features.append((feature, contribution))
-        elif contribution < 0:
-            neg_contrib_features.append((feature, contribution))
+        # Determine the class index with the highest prediction probability to focus on
+        class_index = np.argmax(prediction_proba)
+        shap_contributions = shap_values[class_index][0]  # Get SHAP values for the current class
 
-    # Sort contributions to identify the most significant positive and negative contributions
-    pos_contrib_features.sort(key=lambda x: x[1], reverse=True)
-    neg_contrib_features.sort(key=lambda x: x[1])
+        # Separate positive and negative feature contributions
+        pos_contrib_features = []
+        neg_contrib_features = []
+        
+        # Classify feature contributions into strengths and weaknesses
+        for feature, contribution in zip(average_stats_df.columns, shap_contributions):
+            if contribution > 0:
+                pos_contrib_features.append((feature, contribution))
+            else:
+                neg_contrib_features.append((feature, contribution))
 
-    # Display strengths
-    st.write("### Team Strengths:")
-    for feature, contribution in pos_contrib_features[:5]:  # Show top 5 positive contributions
-        st.write(f"- **{feature.capitalize()}** is strong due to contributions from selected players.")
+        # Sort features by contribution strength
+        pos_contrib_features.sort(key=lambda x: x[1], reverse=True)
+        neg_contrib_features.sort(key=lambda x: x[1])
 
-    # Display weaknesses and suggest players
-    st.write("### Team Weaknesses and Player Suggestions:")
-    for feature, contribution in neg_contrib_features[:5]:  # Show top 5 negative contributions
-        st.write(f"- **{feature.capitalize()}** could be improved.")
+        # Display team strengths
+        st.write("### Team Strengths:")
+        for feature, contribution in pos_contrib_features[:5]:  # Show top 5 strengths
+            st.write(f"- **{feature.capitalize()}** is strong, contributed by selected players.")
 
-        # Suggest players who are strong in this feature
-        top_players = df.nlargest(10, feature)  # Select top players based on the weak feature
-        suggested_players = top_players['Player'].sample(3)  # Randomly suggest 3 players from the top 10
+        # Display team weaknesses and suggest players for improvement
+        st.write("### Team Weaknesses and Suggested Players:")
+        for feature, contribution in neg_contrib_features[:5]:  # Show top 5 weaknesses
+            st.write(f"- **{feature.capitalize()}** could be improved.")
 
-        st.write("  Suggested Players to Improve **{}**:".format(feature))
-        for player in suggested_players:
-            st.write(f"    - {player}")
+            # Suggest players strong in this weak area
+            top_players = df.nlargest(10, feature)  # Top players for this weak feature
+            suggested_players = top_players['Player'].sample(3)  # Randomly suggest 3 players from the top 10
 
-    st.write("These player suggestions could help balance the team’s weaknesses!")
+            st.write("  Suggested Players to Improve **{}**:".format(feature))
+            for player in suggested_players:
+                st.write(f"    - {player}")
 
+        st.write("These suggested players could help strengthen your team's weaknesses!")

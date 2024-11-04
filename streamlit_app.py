@@ -121,7 +121,7 @@ def analyze_team_with_lime(model, feature_names, average_stats_df, training_data
         training_data,
         feature_names=feature_names,
         class_names=model.classes_,
-        mode='regression'
+        mode='classification'
     )
     
     exp = explainer.explain_instance(

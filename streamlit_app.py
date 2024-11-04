@@ -100,48 +100,62 @@ else:
         st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
-
-    # Button for team strength analysis and player suggestions using SHAP
-    if st.button('Analyze Team Strengths and Get Player Suggestions'):
-        # Use PermutationExplainer to calculate SHAP values
-        explainer = shap.PermutationExplainer(SVM_model.predict_proba, average_stats_df)
-        shap_values = explainer(average_stats_df)
-
-        # Determine the class index with the highest prediction probability to focus on
-        class_index = np.argmax(prediction_proba)
-        shap_contributions = shap_values.values[0, :, class_index]  # Get SHAP values for the current class
-
-        # Separate positive and negative feature contributions
-        pos_contrib_features = []
-        neg_contrib_features = []
-        
-        # Classify feature contributions into strengths and weaknesses
-        for feature, contribution in zip(average_stats_df.columns, shap_contributions):
-            if contribution > 0:
-                pos_contrib_features.append((feature, contribution))
-            else:
-                neg_contrib_features.append((feature, contribution))
-
-        # Sort features by contribution strength
-        pos_contrib_features.sort(key=lambda x: x[1], reverse=True)
-        neg_contrib_features.sort(key=lambda x: x[1])
-
-        # Display team strengths
-        st.write("### Team Strengths:")
-        for feature, contribution in pos_contrib_features[:5]:  # Show top 5 strengths
-            st.write(f"- **{feature.capitalize()}** is strong, contributed by selected players.")
-
-        # Display team weaknesses and suggest players for improvement
-        st.write("### Team Weaknesses and Suggested Players:")
-        for feature, contribution in neg_contrib_features[:5]:  # Show top 5 weaknesses
-            st.write(f"- **{feature.capitalize()}** could be improved.")
-
-            # Suggest players strong in this weak area
-            top_players = df.nlargest(10, feature)  # Top players for this weak feature
-            suggested_players = top_players['Player'].sample(3)  # Randomly suggest 3 players from the top 10
-
-            st.write("  Suggested Players to Improve **{}**:".format(feature))
-            for player in suggested_players:
-                st.write(f"    - {player}")
-
-        st.write("These suggested players could help strengthen your team's weaknesses!")
+    st.markdown('<h2 class="sub-title">📊 Team Analysis</h2>', unsafe_allow_html=True)
+    
+    # Prepare feature names and training data
+    feature_names = average_stats_df.columns.tolist()
+    training_data = df.drop(['Player', 'Season', 'Season Outcome'], axis=1, errors='ignore')
+    
+    # Get feature importance from both LIME and SHAP
+    lime_importance = analyze_team_with_lime(SVM_model, feature_names, average_stats_df, training_data.values)
+    shap_importance = analyze_team_with_shap(SVM_model, average_stats_df)
+    
+    # Combine and average the importance scores
+    combined_importance = {}
+    for feature in feature_names:
+        lime_score = lime_importance.get(feature, 0)
+        shap_score = shap_importance.get(feature, 0)
+        combined_importance[feature] = (abs(lime_score) + abs(shap_score)) / 2
+    
+    # Sort features by importance
+    sorted_features = sorted(combined_importance.items(), key=lambda x: abs(x[1]), reverse=True)
+    
+    # Identify strengths and weaknesses
+    team_stats = average_stats_df.iloc[0]
+    league_avg = df.mean(numeric_only=True)
+    
+    strengths = []
+    weaknesses = []
+    
+    for feature, importance in sorted_features[:5]:  # Look at top 5 most important features
+        if team_stats[feature] > league_avg[feature]:
+            strengths.append((feature, team_stats[feature], league_avg[feature]))
+        else:
+            weaknesses.append((feature, team_stats[feature], league_avg[feature]))
+    
+    # Display team strengths
+    st.write("### 💪 Team Strengths")
+    for feature, team_val, league_val in strengths:
+        st.write(f"**{feature}**: {team_val:.2f} (League avg: {league_val:.2f})")
+        players_strong = selected_players_df.nlargest(3, feature)[['Player', feature]]
+        st.write("Top contributors:")
+        st.dataframe(players_strong)
+    
+    # Display team weaknesses and recommendations
+    st.write("### 🎯 Areas for Improvement")
+    weak_features = [w[0] for w in weaknesses]
+    recommendations = find_recommended_players(df, weak_features, selected_players)
+    
+    for feature, team_val, league_val in weaknesses:
+        st.write(f"**{feature}**: {team_val:.2f} (League avg: {league_val:.2f})")
+        st.write("Recommended players to target:")
+        st.dataframe(recommendations[feature])
+    
+    # Visualize feature importance
+    st.write("### 📈 Feature Importance Overview")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    features, importance = zip(*sorted_features[:10])  # Top 10 features
+    ax.barh(features, importance)
+    ax.set_xlabel('Feature Importance')
+    plt.tight_layout()
+    st.pyplot(fig)

@@ -3,7 +3,6 @@ import pandas as pd
 import joblib
 import numpy as np
 import shap
-from sklearn.preprocessing import StandardScaler
 from lime.lime_tabular import LimeTabularExplainer
 import matplotlib.pyplot as plt
 
@@ -160,10 +159,6 @@ def find_recommended_players(df, weak_features, current_players, top_n=3):
     
     return recommendations
 
-# Add this section after your prediction button code
-if st.button('Predict Season Outcome'):
-    # [Previous prediction code remains the same]
-    
     # After showing the prediction, add the analysis section
     st.markdown('<h2 class="sub-title">📊 Team Analysis</h2>', unsafe_allow_html=True)
     

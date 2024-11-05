@@ -107,39 +107,3 @@ else:
         st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
-
-        # Convert columns to numeric as done before
-        a = df.drop(columns=['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'])
-        average_stats_df = a.apply(pd.to_numeric, errors='coerce').fillna(average_stats_df.mean())
-        
-        # Define the explainer with numeric data and correct parameters
-        explainer = LimeTabularExplainer(
-            training_data=df.drop(columns=['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams']).apply(pd.to_numeric, errors='coerce').fillna(df.mean()).values,  # Ensuring all training data is numeric
-            feature_names=average_stats_df.columns.tolist(),  # Feature names from your DataFrame
-            class_names=[str(i) for i in SVM_model.classes_],  # Assuming SVM_model.classes_ is [0, 1, 2, 3, 4, 5]
-            mode='classification'
-        )
-
-        # Get Lime explanation
-        explanation = explainer.explain_instance(average_stats_df.values[0], SVM_model.predict_proba)
-        st.write("### Lime Feature Importance Analysis:")
-        st.pyplot(explanation.as_pyplot_figure())
-
-        # Analyze features that contribute to success and areas to improve
-        if prediction[0] != 5:
-            st.write("### Suggested Improvements:")
-            high_contributing_features = [feature for feature, weight in explanation.as_list() if weight > 0]
-            low_contributing_features = [feature for feature, weight in explanation.as_list() if weight < 0]
-
-            st.write("#### Features contributing to your team's strengths:")
-            for feature in high_contributing_features:
-                contributing_players = selected_players_df.nlargest(3, feature)['Player'].tolist()
-                st.write(f"- **{feature}**: Boosted by players: {', '.join(contributing_players)}")
-
-            st.write("#### Areas where your team can improve:")
-            for feature in low_contributing_features:
-                improving_players = df.nlargest(5, feature)['Player'].tolist()
-                st.write(f"- **{feature}**: Suggested players to acquire: {', '.join(random.sample(improving_players, 3))}")
-
-        else:
-            st.write("### Congratulations! Your team is predicted to make it to the playoffs!")

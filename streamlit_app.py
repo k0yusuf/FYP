@@ -89,6 +89,11 @@ else:
     # scaled_average_stats = scaler.transform(average_stats_df)  # Uncomment if you have a scaler
 
     # Button for Prediction
+    # Convert all columns in average_stats_df to numeric, forcing errors to NaN
+    average_stats_df = average_stats_df.apply(pd.to_numeric, errors='coerce')
+
+# Fill NaN values, if any, with the column mean
+    average_stats_df = average_stats_df.fillna(average_stats_df.mean())
     if st.button('Predict Season Outcome'):
         # Predict the season outcome
         prediction = SVM_model.predict(average_stats_df)

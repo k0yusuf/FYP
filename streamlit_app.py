@@ -117,7 +117,7 @@ else:
         
         # Define the explainer with numeric data and correct parameters
         explainer = LimeTabularExplainer(
-            training_data=df.drop(columns=['Player', 'Season Outcome']).apply(pd.to_numeric, errors='coerce').fillna(df.mean()).values,  # Ensuring all training data is numeric
+            training_data=df.drop(columns=['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams']).apply(pd.to_numeric, errors='coerce').fillna(df.mean()).values,  # Ensuring all training data is numeric
             feature_names=average_stats_df.columns.tolist(),  # Feature names from your DataFrame
             class_names=[str(i) for i in SVM_model.classes_],  # Assuming SVM_model.classes_ is [0, 1, 2, 3, 4, 5]
             mode='classification'

@@ -112,13 +112,15 @@ else:
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
-        # Lime explanation setup
+        # Convert columns to numeric as done before
+        average_stats_df = average_stats_df.apply(pd.to_numeric, errors='coerce').fillna(average_stats_df.mean())
+        
+        # Define the explainer with numeric data and correct parameters
         explainer = LimeTabularExplainer(
-            df.drop(columns=['Player', 'Season Outcome']).values,
-            mode="classification",
-            feature_names=average_stats_df.columns,
-            class_names=[str(i) for i in SVM_model.classes_],
-            discretize_continuous=True
+            training_data=df.drop(columns=['Player', 'Season Outcome']).apply(pd.to_numeric, errors='coerce').fillna(df.mean()).values,  # Ensuring all training data is numeric
+            feature_names=average_stats_df.columns.tolist(),  # Feature names from your DataFrame
+            class_names=[str(i) for i in SVM_model.classes_],  # Assuming SVM_model.classes_ is [0, 1, 2, 3, 4, 5]
+            mode='classification'
         )
 
         # Get Lime explanation

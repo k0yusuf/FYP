@@ -88,11 +88,7 @@ else:
     # Scale the features
     # scaled_average_stats = scaler.transform(average_stats_df)  # Uncomment if you have a scaler
 
-    # Button for Prediction
-    # Convert all columns in average_stats_df to numeric, forcing errors to NaN
-    average_stats_df = average_stats_df.apply(pd.to_numeric, errors='coerce')
 
-# Fill NaN values, if any, with the column mean
     average_stats_df = average_stats_df.fillna(average_stats_df.mean())
     if st.button('Predict Season Outcome'):
         # Predict the season outcome
@@ -113,7 +109,8 @@ else:
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
         # Convert columns to numeric as done before
-        average_stats_df = average_stats_df.apply(pd.to_numeric, errors='coerce').fillna(average_stats_df.mean())
+        a = df.drop(columns=['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'])
+        average_stats_df = a.apply(pd.to_numeric, errors='coerce').fillna(average_stats_df.mean())
         
         # Define the explainer with numeric data and correct parameters
         explainer = LimeTabularExplainer(

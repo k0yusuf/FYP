@@ -5,7 +5,7 @@ import numpy as np
 import shap
 from lime.lime_tabular import LimeTabularExplainer
 import matplotlib.pyplot as plt
-
+import random
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -14,7 +14,7 @@ player_names = df['Player'].unique()
 # Set custom NBA-themed page layout
 st.set_page_config(page_title="NBA Season Outcome Predictor", page_icon="🏀", layout="wide")
 
-# NBA themed title and header
+# NBA-themed title and header
 st.markdown(
     """
     <style>
@@ -66,7 +66,7 @@ selected_players = st.multiselect(
 
 # Load model and scaler
 SVM_model = joblib.load('rf_model.joblib')
-#scaler = joblib.load('scaler.joblib')
+# scaler = joblib.load('scaler.joblib') # Uncomment if you have a scaler
 
 # Check for player selection limits
 if len(selected_players) < 10:
@@ -86,7 +86,7 @@ else:
     st.dataframe(average_stats)
 
     # Scale the features
-    #scaled_average_stats = scaler.transform(average_stats_df)
+    # scaled_average_stats = scaler.transform(average_stats_df)  # Uncomment if you have a scaler
 
     # Button for Prediction
     if st.button('Predict Season Outcome'):
@@ -106,3 +106,36 @@ else:
         st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
+
+        # Lime explanation setup
+        explainer = LimeTabularExplainer(
+            df.drop(columns=['Player', 'Season Outcome']).values,
+            mode="classification",
+            feature_names=average_stats_df.columns,
+            class_names=[str(i) for i in SVM_model.classes_],
+            discretize_continuous=True
+        )
+
+        # Get Lime explanation
+        explanation = explainer.explain_instance(average_stats_df.values[0], SVM_model.predict_proba)
+        st.write("### Lime Feature Importance Analysis:")
+        st.pyplot(explanation.as_pyplot_figure())
+
+        # Analyze features that contribute to success and areas to improve
+        if prediction[0] != 5:
+            st.write("### Suggested Improvements:")
+            high_contributing_features = [feature for feature, weight in explanation.as_list() if weight > 0]
+            low_contributing_features = [feature for feature, weight in explanation.as_list() if weight < 0]
+
+            st.write("#### Features contributing to your team's strengths:")
+            for feature in high_contributing_features:
+                contributing_players = selected_players_df.nlargest(3, feature)['Player'].tolist()
+                st.write(f"- **{feature}**: Boosted by players: {', '.join(contributing_players)}")
+
+            st.write("#### Areas where your team can improve:")
+            for feature in low_contributing_features:
+                improving_players = df.nlargest(5, feature)['Player'].tolist()
+                st.write(f"- **{feature}**: Suggested players to acquire: {', '.join(random.sample(improving_players, 3))}")
+
+        else:
+            st.write("### Congratulations! Your team is predicted to make it to the playoffs!")

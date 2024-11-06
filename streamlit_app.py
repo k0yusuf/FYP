@@ -110,84 +110,27 @@ else:
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
     if st.button('Show Suggestions'):
-                # SHAP Explainer
-        # Check which columns are present in the DataFrame
-        columns_to_drop = ['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
-                           'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
-                           'Multiple Teams']
-        
-        # Drop only columns that are present in the DataFrame
-        df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
         # SHAP Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, df_filtered.values)
-        shap_values = explainer.shap_values(average_stats_df)        
-        # Check the shape of shap_values to determine if it's a binary or multi-class classifier
-        if isinstance(shap_values, list) and len(shap_values) > 1:
-            # Multi-class case
-            shap_feature_impact = shap_values[class_index]  # Use class_index for multi-class
-        else:
-            # Binary classification or single output
-            shap_feature_impact = shap_values[0]  # Directly use shap_values[0] if it's binary
-        
-        # Identify top positive and negative features
+        explainer = shap.KernelExplainer(SVM_model.predict_proba,df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'].values)
+        shap_values = explainer.shap_values(scaled_average_stats)
+
+        # Class index for the most probable predicted outcome
+        class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
+
+        shap_feature_impact = shap_values[class_index][0]
         top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
         top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
-        
-        # Print or use top_positive_features and top_negative_features
-        print("Top positive features:", top_positive_features)
-        print("Top negative features:", top_negative_features)
-
 
         # Display strengths
         st.write("### Strengths of Your Team")
         for feature_idx in top_positive_features:
             feature_name = average_stats_df.columns[feature_idx]
             contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
-            st.write(f"- **{feature_name}** is strong due to players: {', '.join(contributing_players)}")
+            st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
 
         # Display weaknesses and suggest players to improve them
         st.write("### Suggested Improvements for Your Team")
         for feature_idx in top_negative_features:
             feature_name = average_stats_df.columns[feature_idx]
             suggested_players = df.nlargest(3, feature_name)['Player']
-            st.write(f"- **{feature_name}** needs improvement. Suggested players: {', '.join(suggested_players)}")
-
-    if st.button('Show Suggestions (LIME)'):
-        explainer = lime.lime_tabular.LimeTabularExplainer(
-            training_data=selected_players_df.drop(columns=["Player"]).values,  # Assuming "Player" column exists
-            feature_names=selected_players_df.drop(columns=["Player"]).columns,
-            class_names=['0', '1', '2', '3', '4', '5'],  # Adjust this according to your target variable labels
-            discretize_continuous=True
-        )
-        
-        # Generate LIME explanation
-        explanation = explainer.explain_instance(
-            X_test_sample.values[0],  # Pick the first sample or any sample you want to explain
-            model.predict_proba
-        )
-        
-        # Display strengths and weaknesses in Streamlit
-        st.title("Strengths and Weaknesses based on LIME Analysis")
-        
-        # Get the list of features and their contributions from the explanation
-        explanation_list = explanation.as_list()
-        
-        # Separate top contributing (positive) and weak contributing (negative) features
-        strengths = [f"{feature}: {value:.2f}" for feature, value in explanation_list if value > 0]
-        weaknesses = [f"{feature}: {value:.2f}" for feature, value in explanation_list if value < 0]
-        
-        # Display strengths
-        st.subheader("Strengths of Your Team (Top Contributing Features)")
-        if strengths:
-            for strength in strengths:
-                st.write(strength)
-        else:
-            st.write("No strong contributing features identified.")
-        
-        # Display weaknesses
-        st.subheader("Suggested Improvements for Your Team (Weak Contributing Features)")
-        if weaknesses:
-            for weakness in weaknesses:
-                st.write(weakness)
-        else:
-            st.write("No weak contributing features identified.")
+            st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")

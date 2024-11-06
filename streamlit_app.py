@@ -110,7 +110,7 @@ else:
 
     if st.button('Show Suggestions'):
         # SHAP Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'].values))
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams']).values)
         shap_values = explainer.shap_values(average_stats_df)
 
         # Class index for the most probable predicted outcome

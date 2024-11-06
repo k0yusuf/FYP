@@ -110,20 +110,35 @@ else:
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
     if st.button('Show Suggestions'):
-
-
         explainer = LimeTabularExplainer(
         training_data=average_stats_df.values,
         feature_names=average_stats_df.columns,
-        class_names= SVM_model.classes_,  # Replace with your actual class names
+        class_names=SVM_model.classes_,
         categorical_features=['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
-                           'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
-                           'Multiple Teams'],  # Replace with the indices of any categorical features
-        kernel_width=3)
+                             'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
+                             'Multiple Teams'],
+        kernel_width=3
+    )
+
         exp = explainer.explain_instance(
         average_stats_df.values[0],
         SVM_model.predict_proba,
-        num_features=10  # Number of top features to display
-        )
-        fig = exp.as_pyplot_figure()
-        st.pyplot(fig)
+        num_features=10
+    )
+        top_features = exp.as_list()
+        st.markdown(f"### Predicted Outcome: **{prediction}**")
+        st.markdown(f"### Confidence: **{prediction_proba[SVM_model.classes_.index(prediction)]*100:.2f}%**")
+        st.markdown("### Key Contributing Features:")
+        for feature, importance in top_features:
+            st.markdown(f"- **{feature}**: {importance}")
+
+        st.markdown("### Areas for Improvement:")
+        for feature, importance in top_features:
+            if importance < 0:
+                st.markdown(f"- **{feature}**: Try to improve this feature to increase the chances of a positive outcome.")
+
+
+
+
+        
+        \

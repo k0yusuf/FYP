@@ -160,10 +160,9 @@ else:
     
         # Explain prediction for average stats
         explanation = explainer.explain_instance(
-            average_stats_df.values[0],  # Input data instance (average stats for selected players)
+            average_stats_df.iloc[0],  # Use iloc[0] to pass as a DataFrame row, retaining feature names
             SVM_model.predict_proba
         )
-    
         # Extract and display top features
         st.write("### Strengths and Weaknesses based on LIME Analysis")
         top_features = explanation.as_list()

@@ -82,7 +82,7 @@ else:
     # Filter selected player stats and calculate average
     selected_players_df = df[df['Player'].isin(selected_players)]
     #average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
-    scaled_features = scaler.transform(features)  
+    scaled_features = scaler.transform(selected_players_df)  
     average_stats = scaled_features.mean(axis=0).reshape(1, -1)
 
     # Display average stats

@@ -107,28 +107,29 @@ else:
         st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
-        if st.button('Show Suggestions'):
-            # SHAP Explainer
-            explainer = shap.KernelExplainer(SVM_model.predict_proba, scaler.transform(df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'], axis=1).values))
-            shap_values = explainer.shap_values(scaled_average_stats)
-    
-            # Class index for the most probable predicted outcome
-            class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
-    
-            shap_feature_impact = shap_values[class_index][0]
-            top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
-            top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
-    
-            # Display strengths
-            st.write("### Strengths of Your Team")
-            for feature_idx in top_positive_features:
-                feature_name = average_stats_df.columns[feature_idx]
-                contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
-                st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
-    
-            # Display weaknesses and suggest players to improve them
-            st.write("### Suggested Improvements for Your Team")
-            for feature_idx in top_negative_features:
-                feature_name = average_stats_df.columns[feature_idx]
-                suggested_players = df.nlargest(3, feature_name)['Player']
-                st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")
+
+    if st.button('Show Suggestions'):
+        # SHAP Explainer
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams'].values)
+        shap_values = explainer.shap_values(average_stats_df)
+
+        # Class index for the most probable predicted outcome
+        class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
+
+        shap_feature_impact = shap_values[class_index][0]
+        top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
+        top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
+
+        # Display strengths
+        st.write("### Strengths of Your Team")
+        for feature_idx in top_positive_features:
+            feature_name = average_stats_df.columns[feature_idx]
+            contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
+            st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
+
+        # Display weaknesses and suggest players to improve them
+        st.write("### Suggested Improvements for Your Team")
+        for feature_idx in top_negative_features:
+            feature_name = average_stats_df.columns[feature_idx]
+            suggested_players = df.nlargest(3, feature_name)['Player']
+            st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")

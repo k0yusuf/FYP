@@ -109,8 +109,18 @@ else:
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
     if st.button('Show Suggestions'):
-        # SHAP Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, df.drop(['Player', 'Season', 'Season Outcome', 'Team','Offense Position', 'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance','Multiple Teams']).values)
+            # SHAP Explainer
+    # Check which columns are present in the DataFrame
+    columns_to_drop = ['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
+                       'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
+                       'Multiple Teams']
+    
+    # Drop only columns that are present in the DataFrame
+    df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
+    
+    # SHAP Explainer
+    explainer = shap.KernelExplainer(SVM_model.predict_proba, df_filtered.values)
+    shap_values = explainer.shap_values(average_stats_df)
         shap_values = explainer.shap_values(average_stats_df)
 
         # Class index for the most probable predicted outcome

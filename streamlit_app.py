@@ -110,35 +110,18 @@ else:
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
     if st.button('Show Suggestions'):
-        # Check which columns are present in the DataFrame
-        columns_to_drop = ['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
+        explainer = LimeTabularExplainer(
+        training_data=average_stats_df.values,
+        feature_names=average_stats_df.columns,
+        class_names=SVM_model.classes,  # Replace with your actual class names
+        categorical_features=['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
                            'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
-                           'Multiple Teams']
-        
-        # Drop only columns that are present in the DataFrame
-        df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
-        
-        # SHAP Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, df_filtered.values)
-        shap_values = explainer.shap_values(average_stats_df)
-
-        # Class index for the most probable predicted outcome
-        class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
-
-        shap_feature_impact = shap_values[class_index][0]
-        top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
-        top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
-
-        # Display strengths
-        st.write("### Strengths of Your Team")
-        for feature_idx in top_positive_features:
-            feature_name = average_stats_df.columns[feature_idx]
-            contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
-            st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
-
-        # Display weaknesses and suggest players to improve them
-        st.write("### Suggested Improvements for Your Team")
-        for feature_idx in top_negative_features:
-            feature_name = average_stats_df.columns[feature_idx]
-            suggested_players = df.nlargest(3, feature_name)['Player']
-            st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")
+                           'Multiple Teams'],  # Replace with the indices of any categorical features
+        kernel_width=3)
+        exp = explainer.explain_instance(
+        average_stats_df.values[0],
+        SVM_model.predict_proba,
+        num_features=10  # Number of top features to display
+        )
+        fig = exp.as_pyplot_figure()
+        st.pyplot(fig)

@@ -65,7 +65,8 @@ selected_players = st.multiselect(
 
 # Load model and scaler
 SVM_model = joblib.load('svm_model (1).joblib')
-scaler = joblib.load('scaler.joblib')
+#scaler = joblib.load('scaler.joblib')
+scaler = 
 
 # Check for player selection limits
 if len(selected_players) < 10:
@@ -77,7 +78,7 @@ else:
 
     # Filter selected player stats and calculate average
     selected_players_df = df[df['Player'].isin(selected_players)]
-    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore').values.reshape(1, -1) 
+    average_stats = selected_players_df.mean(axis=0).drop(['Season', 'Season Outcome'], errors='ignore').values.reshape(1, -1) 
     average_stats_df = pd.DataFrame(average_stats) # Convert Series to DataFrame with one row
 
     # Display average stats

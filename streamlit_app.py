@@ -65,7 +65,7 @@ selected_players = st.multiselect(
 
 # Load model and scaler
 SVM_model = joblib.load('svm_model (1).joblib')
-#scaler = joblib.load('scaler.joblib')
+scaler = joblib.load('scaler.joblib')
 
 # Check for player selection limits
 if len(selected_players) < 10:

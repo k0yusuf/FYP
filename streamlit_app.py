@@ -66,7 +66,6 @@ selected_players = st.multiselect(
     max_selections=15,
     help='You must select between 10 and 15 players.'
 )
-
 # Load model and scaler
 SVM_model = joblib.load('svm_model (1).joblib')
 scaler = joblib.load('scaler.joblib') # Uncomment if you have a scaler
@@ -80,7 +79,8 @@ else:
     st.markdown('<p class="success-text">You have selected your roster! 🏀</p>', unsafe_allow_html=True)
 
     # Filter selected player stats and calculate average
-    selected_players_df = df[df['Player'].isin(selected_players)]
+    numerical_features = [col for col in team_stats_resampled if col in player_avg_stats.columns and player_avg_stats[col].dtype in [np.int64, np.float64]]
+    selected_players_df = df[df['Player'].isin(numerical_features)]
     #average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
     scaled_features = scaler.transform(selected_players_df)  
     average_stats = scaled_features.mean(axis=0).reshape(1, -1)

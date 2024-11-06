@@ -3,12 +3,8 @@ import pandas as pd
 import joblib
 import numpy as np
 import shap
-from lime.lime_tabular import LimeTabularExplainer
-import matplotlib.pyplot as plt
-import random
-import warnings
 from sklearn.preprocessing import StandardScaler
-
+from lime.lime_tabular import LimeTabularExplainer
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -17,7 +13,7 @@ player_names = df['Player'].unique()
 # Set custom NBA-themed page layout
 st.set_page_config(page_title="NBA Season Outcome Predictor", page_icon="🏀", layout="wide")
 
-# NBA-themed title and header
+# NBA themed title and header
 st.markdown(
     """
     <style>
@@ -66,9 +62,10 @@ selected_players = st.multiselect(
     max_selections=15,
     help='You must select between 10 and 15 players.'
 )
+
 # Load model and scaler
 SVM_model = joblib.load('svm_model (1).joblib')
-scaler = joblib.load('scaler.joblib') # Uncomment if you have a scaler
+scaler = joblib.load('scaler.joblib')
 
 # Check for player selection limits
 if len(selected_players) < 10:
@@ -79,24 +76,32 @@ else:
     st.markdown('<p class="success-text">You have selected your roster! 🏀</p>', unsafe_allow_html=True)
 
     # Filter selected player stats and calculate average
-    numerical_features = [col for col in team_stats_resampled if col in player_avg_stats.columns and player_avg_stats[col].dtype in [np.int64, np.float64]]
-    selected_players_df = df[df['Player'].isin(numerical_features)]
-    #average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
-    scaled_features = scaler.transform(selected_players_df)  
-    average_stats = scaled_features.mean(axis=0).reshape(1, -1)
+    selected_players_df = df[df['Player'].isin(selected_players)]
+    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
+    average_stats_df = pd.DataFrame(average_stats) # Convert Series to DataFrame with one row
 
     # Display average stats
     st.write("### Average Stats for Selected Players:")
     st.dataframe(average_stats)
 
     # Scale the features
-    # scaled_average_stats = scaler.transform(average_stats_df)  # Uncomment if you have a scaler
+    scaled_average_stats = scaler.transform(average_stats_df)
 
-
-    average_stats_df = average_stats_df.fillna(average_stats_df.mean())
+    # Button for Prediction
     if st.button('Predict Season Outcome'):
         # Predict the season outcome
-        prediction = svm_model.predict(average_stats)[0]
-        st.write(f"Predicted Season Outcome: {prediction}")
+        prediction = SVM_model.predict(scaled_average_stats)
+        prediction_proba = SVM_model.predict_proba(scaled_average_stats)
 
-    
+        # Display prediction possibilities with confidence
+        outcome_df = pd.DataFrame({
+            'Outcome': SVM_model.classes_,
+            'Confidence (%)': prediction_proba[0] * 100
+        })
+        st.write("### Prediction Possibilities and Confidence:")
+        st.table(outcome_df)
+
+        # Show final prediction outcome
+        st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
+        st.write(f"### Predicted Outcome: **{prediction[0]}**")
+        st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")

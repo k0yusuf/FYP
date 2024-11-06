@@ -119,10 +119,14 @@ else:
         # Drop only columns that are present in the DataFrame
         df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
         
-                # SHAP Explainer
+         # SHAP Explainer
         
-        # Assuming you already have shap_values and class_index defined
+       # Drop only columns that are present in the DataFrame
+        df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
         
+        # SHAP Explainer
+        explainer = shap.KernelExplainer(SVM_model.predict_proba, df_filtered.values)
+        shap_values = explainer.shap_values(average_stats_df)        
         # Check the shape of shap_values to determine if it's a binary or multi-class classifier
         if isinstance(shap_values, list) and len(shap_values) > 1:
             # Multi-class case

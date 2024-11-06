@@ -6,6 +6,7 @@ import shap
 from lime.lime_tabular import LimeTabularExplainer
 import matplotlib.pyplot as plt
 import random
+import warnings
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -159,6 +160,8 @@ else:
         )
     
         # Explain prediction for average stats
+        warnings.filterwarnings("ignore", category=FutureWarning, module="lime")
+
         explanation = explainer.explain_instance(
             average_stats_df.iloc[0],  # Use iloc[0] to pass as a DataFrame row, retaining feature names
             SVM_model.predict_proba

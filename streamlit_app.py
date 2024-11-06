@@ -121,10 +121,9 @@ else:
         # SHAP Explainer
         explainer = shap.KernelExplainer(SVM_model.predict_proba, df_filtered.values)
         shap_values = explainer.shap_values(average_stats_df)
-        shap_values = explainer.shap_values(average_stats_df)
 
         # Class index for the most probable predicted outcome
-        class_index = np.argmax(SVM_model.predict_proba(scaled_average_stats))
+        class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
 
         shap_feature_impact = shap_values[class_index][0]
         top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths

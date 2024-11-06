@@ -142,3 +142,47 @@ else:
             feature_name = average_stats_df.columns[feature_idx]
             suggested_players = df.nlargest(3, feature_name)['Player']
             st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")
+
+    if st.button('Show Suggestions (LIME)'):
+        # Filter columns
+        columns_to_drop = ['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
+                           'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
+                           'Multiple Teams']
+        df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
+    
+        # Initialize LIME explainer
+        explainer = LimeTabularExplainer(
+            df_filtered.values,  # Data without target columns and identifiers
+            feature_names=df_filtered.columns,
+            class_names=SVM_model.classes_,
+            mode='classification'
+        )
+    
+        # Explain prediction for average stats
+        explanation = explainer.explain_instance(
+            average_stats_df.values[0],  # Input data instance (average stats for selected players)
+            SVM_model.predict_proba
+        )
+    
+        # Extract and display top features
+        st.write("### Strengths and Weaknesses based on LIME Analysis")
+        top_features = explanation.as_list()
+    
+        # Separate positive and negative contributions
+        top_positive_features = [feat for feat in top_features if feat[1] > 0][:5]  # Top 5 positive
+        top_negative_features = [feat for feat in top_features if feat[1] < 0][:5]  # Top 5 negative
+    
+        # Display strengths
+        st.write("### Strengths of Your Team (Top Contributing Features)")
+        for feature_name, impact in top_positive_features:
+            feature_name = feature_name.split('=')[0].strip()  # Clean feature name
+            contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
+            st.write(f"- **{feature_name.capitalize()}** (impact: {impact:.2f}) due to players: {', '.join(contributing_players)}")
+    
+        # Display weaknesses and suggest players for improvement
+        st.write("### Suggested Improvements for Your Team (Weak Contributing Features)")
+        for feature_name, impact in top_negative_features:
+            feature_name = feature_name.split('=')[0].strip()  # Clean feature name
+            suggested_players = df.nlargest(3, feature_name)['Player']
+            st.write(f"- **{feature_name.capitalize()}** (impact: {impact:.2f}) needs improvement. Suggested players: {', '.join(suggested_players)}")
+

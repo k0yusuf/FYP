@@ -119,16 +119,26 @@ else:
         # Drop only columns that are present in the DataFrame
         df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
         
-        # SHAP Explainer
-        explainer = shap.KernelExplainer(SVM_model.predict_proba, df_filtered.values)
-        shap_values = explainer.shap_values(average_stats_df)
-
-        # Class index for the most probable predicted outcome
-        class_index = np.argmax(SVM_model.predict_proba(average_stats_df))
-
-        shap_feature_impact = shap_values[class_index][]
+                # SHAP Explainer
+        
+        # Assuming you already have shap_values and class_index defined
+        
+        # Check the shape of shap_values to determine if it's a binary or multi-class classifier
+        if isinstance(shap_values, list) and len(shap_values) > 1:
+            # Multi-class case
+            shap_feature_impact = shap_values[class_index]  # Use class_index for multi-class
+        else:
+            # Binary classification or single output
+            shap_feature_impact = shap_values[0]  # Directly use shap_values[0] if it's binary
+        
+        # Identify top positive and negative features
         top_positive_features = np.argsort(shap_feature_impact)[-5:]  # Top 5 strengths
         top_negative_features = np.argsort(shap_feature_impact)[:5]   # Top 5 weaknesses
+        
+        # Print or use top_positive_features and top_negative_features
+        print("Top positive features:", top_positive_features)
+        print("Top negative features:", top_negative_features)
+
 
         # Display strengths
         st.write("### Strengths of Your Team")

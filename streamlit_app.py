@@ -118,12 +118,6 @@ else:
         
         # Drop only columns that are present in the DataFrame
         df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
-        
-         # SHAP Explainer
-        
-       # Drop only columns that are present in the DataFrame
-        df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
-        
         # SHAP Explainer
         explainer = shap.KernelExplainer(SVM_model.predict_proba, df_filtered.values)
         shap_values = explainer.shap_values(average_stats_df)        
@@ -149,14 +143,14 @@ else:
         for feature_idx in top_positive_features:
             feature_name = average_stats_df.columns[feature_idx]
             contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
-            st.write(f"- **{feature_name.capitalize()}** is strong due to players: {', '.join(contributing_players)}")
+            st.write(f"- **{feature_name}** is strong due to players: {', '.join(contributing_players)}")
 
         # Display weaknesses and suggest players to improve them
         st.write("### Suggested Improvements for Your Team")
         for feature_idx in top_negative_features:
             feature_name = average_stats_df.columns[feature_idx]
             suggested_players = df.nlargest(3, feature_name)['Player']
-            st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")
+            st.write(f"- **{feature_name}** needs improvement. Suggested players: {', '.join(suggested_players)}")
 
     if st.button('Show Suggestions (LIME)'):
         explainer = lime.lime_tabular.LimeTabularExplainer(

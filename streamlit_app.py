@@ -7,6 +7,8 @@ from lime.lime_tabular import LimeTabularExplainer
 import matplotlib.pyplot as plt
 import random
 import warnings
+from sklearn.preprocessing import StandardScaler
+
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -66,8 +68,8 @@ selected_players = st.multiselect(
 )
 
 # Load model and scaler
-SVM_model = joblib.load('rf_model.joblib')
-# scaler = joblib.load('scaler.joblib') # Uncomment if you have a scaler
+SVM_model = joblib.load('svm_model (1).joblib')
+scaler = joblib.load('scaler.joblib') # Uncomment if you have a scaler
 
 # Check for player selection limits
 if len(selected_players) < 10:
@@ -79,8 +81,9 @@ else:
 
     # Filter selected player stats and calculate average
     selected_players_df = df[df['Player'].isin(selected_players)]
-    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
-    average_stats_df = pd.DataFrame(average_stats).T  # Convert Series to DataFrame with one row
+    #average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore')
+    scaled_features = scaler.transform(features)  
+    average_stats = scaled_features.mean(axis=0).reshape(1, -1)
 
     # Display average stats
     st.write("### Average Stats for Selected Players:")
@@ -93,52 +96,7 @@ else:
     average_stats_df = average_stats_df.fillna(average_stats_df.mean())
     if st.button('Predict Season Outcome'):
         # Predict the season outcome
-        prediction = SVM_model.predict(average_stats_df)
-        prediction_proba = SVM_model.predict_proba(average_stats_df)
+        prediction = svm_model.predict(average_stats)[0]
+        st.write(f"Predicted Season Outcome: {prediction}")
 
-        # Display prediction possibilities with confidence
-        outcome_df = pd.DataFrame({
-            'Outcome': SVM_model.classes_,
-            'Confidence (%)': prediction_proba[0] * 100
-        })
-        st.write("### Prediction Possibilities and Confidence:")
-        st.table(outcome_df)
-
-        # Show final prediction outcome
-        st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
-        st.write(f"### Predicted Outcome: **{prediction[0]}**")
-        st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
-
-    if st.button('Show Suggestions'):
-        explainer = LimeTabularExplainer(
-        training_data=average_stats_df.values,
-        feature_names=average_stats_df.columns,
-        class_names=SVM_model.classes_,
-        categorical_features=['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
-                             'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
-                             'Multiple Teams'],
-        kernel_width=3
-    )
-
-        exp = explainer.explain_instance(
-        average_stats_df.values[0],
-        SVM_model.predict_proba,
-        num_features=10
-    )
-        top_features = exp.as_list()
-        #st.markdown(f"### Predicted Outcome: **{prediction}**")
-        #st.markdown(f"### Confidence: **{prediction_proba[SVM_model.classes_.index(prediction)]*100:.2f}%**")
-        st.markdown("### Key Contributing Features:")
-        for feature, importance in top_features:
-            st.markdown(f"- **{feature}**: {importance}")
-
-        st.markdown("### Areas for Improvement:")
-        for feature, importance in top_features:
-            if importance < 0:
-                st.markdown(f"- **{feature}**: Try to improve this feature to increase the chances of a positive outcome.")
-
-
-
-
-        
-        
+    

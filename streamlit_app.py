@@ -145,47 +145,41 @@ else:
             st.write(f"- **{feature_name.capitalize()}** needs improvement. Suggested players: {', '.join(suggested_players)}")
 
     if st.button('Show Suggestions (LIME)'):
-        # Filter columns
-        columns_to_drop = ['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
-                           'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
-                           'Multiple Teams']
-        df_filtered = df.drop(columns=[col for col in columns_to_drop if col in df.columns])
-    
-        # Initialize LIME explainer
-        explainer = LimeTabularExplainer(
-            df_filtered.values,  # Data without target columns and identifiers
-            feature_names=df_filtered.columns,
-            class_names=SVM_model.classes_,
-            mode='classification'
+        explainer = lime.lime_tabular.LimeTabularExplainer(
+            training_data=selected_players_df.drop(columns=["Player"]).values,  # Assuming "Player" column exists
+            feature_names=selected_players_df.drop(columns=["Player"]).columns,
+            class_names=['0', '1', '2', '3', '4', '5'],  # Adjust this according to your target variable labels
+            discretize_continuous=True
         )
-    
-        # Explain prediction for average stats
-        warnings.filterwarnings("ignore", category=FutureWarning, module="lime")
-
+        
+        # Generate LIME explanation
         explanation = explainer.explain_instance(
-            average_stats_df.iloc[0],  # Use iloc[0] to pass as a DataFrame row, retaining feature names
-            SVM_model.predict_proba
+            X_test_sample.values[0],  # Pick the first sample or any sample you want to explain
+            model.predict_proba
         )
-        # Extract and display top features
-        st.write("### Strengths and Weaknesses based on LIME Analysis")
-        top_features = explanation.as_list()
-    
-        # Separate positive and negative contributions
-        top_positive_features = [feat for feat in top_features if feat[1] > 0][:5]  # Top 5 positive
-        top_negative_features = [feat for feat in top_features if feat[1] < 0][:5]  # Top 5 negative
-    
+        
+        # Display strengths and weaknesses in Streamlit
+        st.title("Strengths and Weaknesses based on LIME Analysis")
+        
+        # Get the list of features and their contributions from the explanation
+        explanation_list = explanation.as_list()
+        
+        # Separate top contributing (positive) and weak contributing (negative) features
+        strengths = [f"{feature}: {value:.2f}" for feature, value in explanation_list if value > 0]
+        weaknesses = [f"{feature}: {value:.2f}" for feature, value in explanation_list if value < 0]
+        
         # Display strengths
-        st.write("### Strengths of Your Team (Top Contributing Features)")
-        for feature, impact in top_positive_features:
-            feature_name = feature.split(' ')[-1].strip()  # Extract just the column name
-            if feature_name in selected_players_df.columns:
-                contributing_players = selected_players_df.nlargest(3, feature_name)['Player']
-                st.write(f"- **{feature_name.capitalize()}** (impact: {impact:.2f}) due to players: {', '.join(contributing_players)}")
-    
-        # Display weaknesses and suggest players for improvement
-        st.write("### Suggested Improvements for Your Team (Weak Contributing Features)")
-        for feature, impact in top_negative_features:
-            feature_name = feature.split(' ')[-1].strip()  # Extract just the column name
-            if feature_name in df.columns:
-                suggested_players = df.nlargest(3, feature_name)['Player']
-                st.write(f"- **{feature_name.capitalize()}** (impact: {impact:.2f}) needs improvement. Suggested players: {', '.join(suggested_players)}")
+        st.subheader("Strengths of Your Team (Top Contributing Features)")
+        if strengths:
+            for strength in strengths:
+                st.write(strength)
+        else:
+            st.write("No strong contributing features identified.")
+        
+        # Display weaknesses
+        st.subheader("Suggested Improvements for Your Team (Weak Contributing Features)")
+        if weaknesses:
+            for weakness in weaknesses:
+                st.write(weakness)
+        else:
+            st.write("No weak contributing features identified.")

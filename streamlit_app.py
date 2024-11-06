@@ -78,14 +78,14 @@ else:
     # Filter selected player stats and calculate average
     selected_players_df = df[df['Player'].isin(selected_players)]
     average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore').values.reshape(1, -1) 
-    average_stats_df = pd.DataFrame(average_stats) # Convert Series to DataFrame with one row
-
+    average_stats_df = pd.DataFrame(average_stats).T
+    
     # Display average stats
     st.write("### Average Stats for Selected Players:")
     st.dataframe(average_stats)
 
     # Scale the features
-    scaled_average_stats = scaler.transform(average_stats_df)
+    scaled_average_stats = scaler.transform(average_stats)
 
     # Button for Prediction
     if st.button('Predict Season Outcome'):

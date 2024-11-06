@@ -113,7 +113,7 @@ else:
         explainer = LimeTabularExplainer(
         training_data=average_stats_df.values,
         feature_names=average_stats_df.columns,
-        class_names=SVM_model.classes,  # Replace with your actual class names
+        class_names= SVM_model.classes_,  # Replace with your actual class names
         categorical_features=['Player', 'Season', 'Season Outcome', 'Team', 'Offense Position', 
                            'Offensive Archetype', 'Defensive Role', 'Stable Avg 2PT Shot Distance', 
                            'Multiple Teams'],  # Replace with the indices of any categorical features

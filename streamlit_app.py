@@ -126,8 +126,8 @@ else:
         num_features=10
     )
         top_features = exp.as_list()
-        st.markdown(f"### Predicted Outcome: **{prediction}**")
-        st.markdown(f"### Confidence: **{prediction_proba[SVM_model.classes_.index(prediction)]*100:.2f}%**")
+        #st.markdown(f"### Predicted Outcome: **{prediction}**")
+        #st.markdown(f"### Confidence: **{prediction_proba[SVM_model.classes_.index(prediction)]*100:.2f}%**")
         st.markdown("### Key Contributing Features:")
         for feature, importance in top_features:
             st.markdown(f"- **{feature}**: {importance}")

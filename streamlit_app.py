@@ -66,6 +66,8 @@ selected_players = st.multiselect(
 # Load model and scaler
 SVM_model = joblib.load('svm_model (1).joblib')
 scaler = joblib.load('scaler.joblib')
+X_train = joblib.load('training_data.joblib')
+
 
 # Check for player selection limits
 if len(selected_players) < 10:
@@ -87,6 +89,7 @@ else:
     # Scale the features
     scaled_average_stats = scaler.transform(average_stats)
 
+
     # Button for Prediction
     if st.button('Predict Season Outcome'):
         # Predict the season outcome
@@ -105,3 +108,22 @@ else:
         st.markdown('<h2 class="sub-title">🏆 Predicted Season Outcome</h2>', unsafe_allow_html=True)
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
+
+    if st.button('Generate Detailed Prediction Explaination'):
+        explainer = lime.lime_tabular.LimeTabularExplainer(
+        training_data=np.array(X_train),  # Your original training data
+        feature_names=average_stats.columns,      # Your original feature names
+        class_names=['Class 0', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5'],  # Adjust class names
+        mode='classification'             # Since it's a classification task
+        )
+
+        exp = explainer.explain_instance(
+        scaled_average_stats.astype(float).values[0],  # User input data (converted to float and NumPy array)
+        SVM_model.predict_proba,                      # Prediction probability function
+        num_features=10                               # Number of features to explain
+    )
+
+        st.subheader("Prediction Explanation")
+        
+        # Assuming 'exp' is the explanation object
+        st.write(exp.as_html())  # Display as HTML for better formatting

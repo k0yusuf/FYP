@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 import shap
 from sklearn.preprocessing import StandardScaler
-from lime.lime_tabular import LimeTabularExplainer  # Direct import of LimeTabularExplainer
+from lime.lime_tabular import LimeTabularExplainer
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -123,3 +123,31 @@ else:
 
         st.subheader("Prediction Explanation")
         st.write(exp.as_html(), unsafe_allow_html=True)  # Display as HTML
+
+        # Identify top positive and negative features
+        explanation_df = pd.DataFrame(exp.as_list(), columns=['Feature', 'Impact'])
+        positive_features = explanation_df[explanation_df['Impact'] > 0].nlargest(5, 'Impact')
+        negative_features = explanation_df[explanation_df['Impact'] < 0].nsmallest(5, 'Impact')
+
+        # Display strengths and weaknesses
+        st.subheader("Strengths - Top Contributing Features")
+        for _, row in positive_features.iterrows():
+            feature, impact = row['Feature'], row['Impact']
+            st.write(f"**{feature}**: Positive impact of {impact:.2f}")
+            # Add player contributions if possible
+            top_players = selected_players_df.sort_values(by=feature, ascending=False)['Player'].head(3)
+            st.write(f"Top Contributing Players: {', '.join(top_players)}")
+
+        st.subheader("Weaknesses - Areas for Improvement")
+        for _, row in negative_features.iterrows():
+            feature, impact = row['Feature'], row['Impact']
+            st.write(f"**{feature}**: Negative impact of {impact:.2f}")
+            # Add player contributions if possible
+            bottom_players = selected_players_df.sort_values(by=feature)['Player'].head(3)
+            st.write(f"Weak Contributing Players: {', '.join(bottom_players)}")
+
+        # Provide recommendations based on weaknesses
+        st.subheader("Recommended Players to Improve Weaknesses")
+        for feature in negative_features['Feature']:
+            improvement_players = df.sort_values(by=feature, ascending=False)['Player'].head(3)
+            st.write(f"For **{feature}** improvement, consider adding: {', '.join(improvement_players)}")

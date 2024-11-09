@@ -121,8 +121,6 @@ else:
             num_features=10  # Number of features to display
         )
 
-        st.subheader("Prediction Explanation")
-        st.write(exp.as_html(), unsafe_allow_html=True)  # Display as HTML
 
         # Identify top positive and negative features
         explanation_df = pd.DataFrame(exp.as_list(), columns=['Feature', 'Impact'])

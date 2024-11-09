@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 import shap
 from sklearn.preprocessing import StandardScaler
-from lime.lime_tabular import LimeTabularExplainer
+from lime.lime_tabular import LimeTabularExplainer  # Direct import of LimeTabularExplainer
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -68,7 +68,6 @@ SVM_model = joblib.load('svm_model (1).joblib')
 scaler = joblib.load('scaler.joblib')
 X_train = joblib.load('training_data.joblib')
 
-
 # Check for player selection limits
 if len(selected_players) < 10:
     st.error("Please select at least 10 players.")
@@ -89,7 +88,6 @@ else:
     # Scale the features
     scaled_average_stats = scaler.transform(average_stats)
 
-
     # Button for Prediction
     if st.button('Predict Season Outcome'):
         # Predict the season outcome
@@ -109,21 +107,19 @@ else:
         st.write(f"### Predicted Outcome: **{prediction[0]}**")
         st.write(f"### Confidence for Outcome: **{np.max(prediction_proba) * 100:.2f}%**")
 
-    if st.button('Generate Detailed Prediction Explaination'):
-        explainer = lime.lime_tabular.LimeTabularExplainer(
-        training_data=np.array(X_train),  # Your original training data
-        feature_names=average_stats.columns,      # Your original feature names
-        class_names=['Class 0', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5'],  # Adjust class names
-        mode='classification'             # Since it's a classification task
+    if st.button('Generate Detailed Prediction Explanation'):
+        explainer = LimeTabularExplainer(
+            training_data=np.array(X_train),  # Your original training data
+            feature_names=df.drop(columns=['Player']).columns.tolist(),  # Feature names
+            class_names=[f'Class {i}' for i in range(len(SVM_model.classes_))],  # Adjust class names
+            mode='classification'  # Classification task
         )
 
         exp = explainer.explain_instance(
-        scaled_average_stats.astype(float).values[0],  # User input data (converted to float and NumPy array)
-        SVM_model.predict_proba,                      # Prediction probability function
-        num_features=10                               # Number of features to explain
-    )
+            scaled_average_stats[0],  # Pass the single instance as a 1D array
+            SVM_model.predict_proba,  # Probability prediction function
+            num_features=10  # Number of features to display
+        )
 
         st.subheader("Prediction Explanation")
-        
-        # Assuming 'exp' is the explanation object
-        st.write(exp.as_html())  # Display as HTML for better formatting
+        st.write(exp.as_html(), unsafe_allow_html=True)  # Display as HTML

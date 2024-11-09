@@ -3,8 +3,10 @@ import pandas as pd
 import joblib
 import numpy as np
 import shap
+import lime
 from sklearn.preprocessing import StandardScaler
 from lime.lime_tabular import LimeTabularExplainer
+import re
 
 # Load the dataset containing player stats
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
@@ -17,27 +19,10 @@ st.set_page_config(page_title="NBA Season Outcome Predictor", page_icon="🏀", 
 st.markdown(
     """
     <style>
-    .main-title {
-        font-size:50px;
-        font-weight:bold;
-        color:#1d428a;
-        text-align:center;
-    }
-    .sub-title {
-        font-size:30px;
-        font-weight:bold;
-        color:#c8102e;
-        text-align:center;
-    }
-    .header {
-        background-color: #f5f5f5;
-        padding: 10px;
-        border-radius: 5px;
-    }
-    .success-text {
-        font-size:18px;
-        color: green;
-    }
+    .main-title { font-size:50px; font-weight:bold; color:#1d428a; text-align:center; }
+    .sub-title { font-size:30px; font-weight:bold; color:#c8102e; text-align:center; }
+    .header { background-color: #f5f5f5; padding: 10px; border-radius: 5px; }
+    .success-text { font-size:18px; color: green; }
     </style>
     """, unsafe_allow_html=True
 )
@@ -109,43 +94,62 @@ else:
 
     if st.button('Generate Detailed Prediction Explanation'):
         explainer = LimeTabularExplainer(
-            training_data=np.array(X_train),  # Your original training data
-            feature_names=df.drop(columns=['Player']).columns.tolist(),  # Feature names
-            class_names=[f'Class {i}' for i in range(len(SVM_model.classes_))],  # Adjust class names
-            mode='classification'  # Classification task
+            training_data=np.array(X_train),
+            feature_names=df.columns.drop(['Player', 'Season', 'Season Outcome']),
+            class_names=['Class 0', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5'],
+            mode='classification'
         )
 
         exp = explainer.explain_instance(
-            scaled_average_stats[0],  # Pass the single instance as a 1D array
-            SVM_model.predict_proba,  # Probability prediction function
-            num_features=10  # Number of features to display
+            scaled_average_stats[0],
+            SVM_model.predict_proba,
+            num_features=10
         )
 
+        # Extract positive and negative feature impacts
+        exp_list = exp.as_list()
+        positive_features = pd.DataFrame([x for x in exp_list if x[1] > 0], columns=['Feature', 'Impact'])
+        negative_features = pd.DataFrame([x for x in exp_list if x[1] < 0], columns=['Feature', 'Impact'])
 
-        # Identify top positive and negative features
-        explanation_df = pd.DataFrame(exp.as_list(), columns=['Feature', 'Impact'])
-        positive_features = explanation_df[explanation_df['Impact'] > 0].nlargest(5, 'Impact')
-        negative_features = explanation_df[explanation_df['Impact'] < 0].nsmallest(5, 'Impact')
+        # Function to extract the raw feature name
+        def get_raw_feature_name(feature_name):
+            return re.sub(r" > .+| < .+", "", feature_name).strip()
 
-        # Display strengths and weaknesses
+        # Strengths section
         st.subheader("Strengths - Top Contributing Features")
         for _, row in positive_features.iterrows():
             feature, impact = row['Feature'], row['Impact']
-            st.write(f"**{feature}**: Positive impact of {impact:.2f}")
-            # Add player contributions if possible
-            top_players = selected_players_df.sort_values(by=feature, ascending=False)['Player'].head(3)
-            st.write(f"Top Contributing Players: {', '.join(top_players)}")
+            raw_feature_name = get_raw_feature_name(feature)
 
+            st.write(f"**{feature}**: Positive impact of {impact:.2f}")
+            
+            if raw_feature_name in selected_players_df.columns:
+                top_players = selected_players_df.sort_values(by=raw_feature_name, ascending=False)['Player'].head(3)
+                st.write(f"Top Contributing Players: {', '.join(top_players)}")
+            else:
+                st.write("Feature not found in data, skipping player contributions.")
+
+        # Weaknesses section
         st.subheader("Weaknesses - Areas for Improvement")
         for _, row in negative_features.iterrows():
             feature, impact = row['Feature'], row['Impact']
-            st.write(f"**{feature}**: Negative impact of {impact:.2f}")
-            # Add player contributions if possible
-            bottom_players = selected_players_df.sort_values(by=feature)['Player'].head(3)
-            st.write(f"Weak Contributing Players: {', '.join(bottom_players)}")
+            raw_feature_name = get_raw_feature_name(feature)
 
-        # Provide recommendations based on weaknesses
+            st.write(f"**{feature}**: Negative impact of {impact:.2f}")
+
+            if raw_feature_name in selected_players_df.columns:
+                bottom_players = selected_players_df.sort_values(by=raw_feature_name)['Player'].head(3)
+                st.write(f"Weak Contributing Players: {', '.join(bottom_players)}")
+            else:
+                st.write("Feature not found in data, skipping player contributions.")
+
+        # Recommendations section
         st.subheader("Recommended Players to Improve Weaknesses")
         for feature in negative_features['Feature']:
-            improvement_players = df.sort_values(by=feature, ascending=False)['Player'].head(3)
-            st.write(f"For **{feature}** improvement, consider adding: {', '.join(improvement_players)}")
+            raw_feature_name = get_raw_feature_name(feature)
+
+            if raw_feature_name in df.columns:
+                improvement_players = df.sort_values(by=raw_feature_name, ascending=False)['Player'].head(3)
+                st.write(f"For **{feature}** improvement, consider adding: {', '.join(improvement_players)}")
+            else:
+                st.write(f"No recommendations for {feature} (feature not found in dataset).")

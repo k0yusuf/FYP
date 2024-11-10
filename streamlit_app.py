@@ -272,41 +272,6 @@ else:
                     'Probability (%)': prediction_proba[0] * 100
                 }).sort_values('Probability (%)', ascending=False)
                 st.table(prob_df)
-            
-            # Historical Context Tab
-            with pred_tabs[2]:
-                st.markdown("### 📚 Historical Analysis")
-                historic_teams = df[df['Season Outcome'] == prediction[0]]
-                
-                if not historic_teams.empty:
-                    st.write(f"Found {len(historic_teams)} historical teams with similar outcomes")
-                    
-                    fig = px.scatter(historic_teams, 
-                                   x='Season', 
-                                   y='Season Outcome',
-                                   size='G',  # Games played
-                                   hover_data=['Player'],
-                                   title='Historical Teams with Similar Outcomes')
-                    st.plotly_chart(fig)
-                    
-                    comp_cols = st.columns(2)
-                    with comp_cols[0]:
-                        st.markdown("### Your Team vs. Historical Average")
-                        hist_stats = historic_teams.mean(numeric_only=True)
-                        current_stats = pd.Series(average_stats[0])
-                        comp_df = pd.DataFrame({
-                            'Your Team': current_stats,
-                            'Historical Average': hist_stats
-                        }).dropna()
-                        st.dataframe(comp_df)
-                    
-                    with comp_cols[1]:
-                        st.markdown("### Key Differences")
-                        diff_df = (current_stats - hist_stats).sort_values(ascending=False)
-                        fig = px.bar(y=diff_df.index, x=diff_df.values,
-                                   title="Stat Differences from Historical Average",
-                                   labels={'x': 'Difference', 'y': 'Statistic'})
-                        st.plotly_chart(fig)
 
     # Interpretability Section
     if st.button('🔍 Generate Detailed Explanation'):

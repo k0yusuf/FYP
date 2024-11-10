@@ -369,7 +369,6 @@ else:
                             st.plotly_chart(fig)
             
             # Recommendations Tab
-            # Recommendations Tab
             with analysis_tabs[2]:
                 st.markdown("### 🎯 Roster Improvement Recommendations")
                 
@@ -414,6 +413,9 @@ else:
             with analysis_tabs[3]:
                 st.markdown("### 👥 Individual Player Analysis")
                 
+                # Debug: Print available columns
+                st.write("Available columns:", df.columns.tolist())
+                
                 # Player selector for detailed view
                 selected_player = st.selectbox(
                     "Select a player for detailed analysis:",
@@ -429,8 +431,12 @@ else:
                     with col1:
                         st.markdown(f"#### {selected_player}'s Statistics")
                         
-                        # Create radar chart for player stats
-                        stats_to_plot = ['PTS', 'AST', 'TRB', 'STL', 'BLK']
+                        # Use the actual columns from your dataset for the radar chart
+                        # Let's select numerical columns that represent player stats
+                        numeric_cols = player_data.select_dtypes(include=[np.number]).columns
+                        stats_to_plot = [col for col in numeric_cols 
+                                       if col not in ['Season', 'Season Outcome']][:5]  # Take first 5 numeric stats
+                        
                         player_stats = player_data[stats_to_plot].iloc[0].values
                         team_avg_stats = selected_players_df[stats_to_plot].mean().values
                         
@@ -496,19 +502,15 @@ else:
                     st.markdown("#### Historical Performance")
                     historical_data = df[df['Player'] == selected_player]
                     if not historical_data.empty:
+                        # Select the first few numeric columns for the line chart
+                        numeric_cols = historical_data.select_dtypes(include=[np.number]).columns
+                        cols_to_plot = [col for col in numeric_cols 
+                                      if col not in ['Season', 'Season Outcome']][:3]
+                        
                         fig = px.line(historical_data, 
                                     x='Season',
-                                    y=['PTS', 'AST', 'TRB'],
+                                    y=cols_to_plot,
                                     title=f"{selected_player}'s Historical Performance")
                         st.plotly_chart(fig)
                     else:
                         st.info("No historical data available for this player.")
-
-# Add footer
-st.markdown("""
-    <div style='text-align: center; padding: 20px; background-color: #f5f5f5; 
-                border-radius: 10px; margin-top: 30px;'>
-        <p>🏀 Built with Streamlit • Powered by Machine Learning</p>
-        <p style='font-size: 12px;'>Data updated as of 2024</p>
-    </div>
-    """, unsafe_allow_html=True)

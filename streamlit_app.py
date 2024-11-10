@@ -327,7 +327,7 @@ else:
             exp_list = exp.as_list()
             feature_importance_plot = create_feature_importance_plot(exp_list)
             
-            analysis_tabs = st.tabs(["Strengths", "Weaknesses", "Recommendations", "Player Details"])
+            analysis_tabs = st.tabs(["Strengths", "Weaknesses", "Recommendations"])
             
             # Strengths Analysis Tab
             with analysis_tabs[0]:
@@ -408,100 +408,6 @@ else:
                                 st.plotly_chart(fig)
                 else:
                     st.info("No specific recommendations found. Your team composition looks balanced!")
-            
-            # Player Details Tab
-            with analysis_tabs[3]:
-                st.markdown("### 👥 Individual Player Analysis")
-                
-                # Player selector for detailed view
-                selected_player = st.selectbox(
-                    "Select a player for detailed analysis:",
-                    selected_players
-                )
-                
-                if selected_player:
-                    player_data = selected_players_df[selected_players_df['Player'] == selected_player]
-                    
-                    # Display player stats in columns
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown(f"#### {selected_player}'s Statistics")
-                        
-                        # Create radar chart for player stats
-                        stats_to_plot = X_train.columns
-                        player_stats = player_data[stats_to_plot].iloc[0].values
-                        team_avg_stats = selected_players_df[stats_to_plot].mean().values
-                        
-                        fig = go.Figure()
-                        
-                        fig.add_trace(go.Scatterpolar(
-                            r=player_stats,
-                            theta=stats_to_plot,
-                            fill='toself',
-                            name='Player Stats'
-                        ))
-                        
-                        fig.add_trace(go.Scatterpolar(
-                            r=team_avg_stats,
-                            theta=stats_to_plot,
-                            fill='toself',
-                            name='Team Average'
-                        ))
-                        
-                        fig.update_layout(
-                            polar=dict(
-                                radialaxis=dict(
-                                    visible=True,
-                                    range=[0, max(max(player_stats), max(team_avg_stats)) * 1.2]
-                                )),
-                            showlegend=True,
-                            title="Player vs Team Average"
-                        )
-                        
-                        st.plotly_chart(fig)
-                    
-                    with col2:
-                        st.markdown("#### Performance Metrics")
-                        
-                        # Calculate percentile ranks for player stats
-                        for col in player_data.select_dtypes(include=[np.number]).columns:
-                            if col not in ['Season', 'Season Outcome']:
-                                value = player_data[col].iloc[0]
-                                percentile = stats.percentileofscore(df[col], value)
-                                
-                                # Create a custom metric display with color coding
-                                if percentile >= 80:
-                                    color = "green"
-                                elif percentile >= 60:
-                                    color = "blue"
-                                elif percentile >= 40:
-                                    color = "orange"
-                                else:
-                                    color = "red"
-                                
-                                st.markdown(
-                                    f"""
-                                    <div style='padding: 10px; border-radius: 5px; margin: 5px 0;
-                                              background-color: {color}20; border: 1px solid {color}'>
-                                        <span style='font-weight: bold;'>{col}:</span>
-                                        <span style='float: right;'>{value:.2f} ({percentile:.0f}%ile)</span>
-                                    </div>
-                                    """,
-                                    unsafe_allow_html=True
-                                )
-                    
-                    # Show historical performance
-                    st.markdown("#### Historical Performance")
-                    historical_data = df[df['Player'] == selected_player]
-                    if not historical_data.empty:
-                        fig = px.line(historical_data, 
-                                    x='Season',
-                                    y=['PTS', 'AST', 'TRB'],
-                                    title=f"{selected_player}'s Historical Performance")
-                        st.plotly_chart(fig)
-                    else:
-                        st.info("No historical data available for this player.")
 
 # Add footer
 st.markdown("""

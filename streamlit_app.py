@@ -429,7 +429,7 @@ else:
                         st.markdown(f"#### {selected_player}'s Statistics")
                         
                         # Create radar chart for player stats
-                        stats_to_plot = ['PTS', 'AST', 'TRB', 'STL', 'BLK']
+                        stats_to_plot = X_train.columns
                         player_stats = player_data[stats_to_plot].iloc[0].values
                         team_avg_stats = selected_players_df[stats_to_plot].mean().values
                         

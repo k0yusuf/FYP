@@ -176,7 +176,7 @@ else:
             negative_features = [x for x in exp_list if x[1] < 0]
             
             # Create tabs for different analysis sections
-            tabs = st.tabs(["Strengths", "Weaknesses", "Recommendations", "Player Details"])
+            tabs = st.tabs(["Strengths", "Weaknesses", "Recommendations"])
             
             # Strengths Analysis Tab
             with tabs[0]:

@@ -149,7 +149,8 @@ else:
             raw_feature_name = get_raw_feature_name(feature)
 
             if raw_feature_name in df.columns:
-                improvement_players = df.sort_values(by=raw_feature_name, ascending=False)['Player'].head(3)
+                # Filter out selected players and sort to get top 5 recommendations
+                improvement_players = df[~df['Player'].isin(selected_players)].sort_values(by=raw_feature_name, ascending=False)['Player'].head(5)
                 st.write(f"For **{feature}** improvement, consider adding: {', '.join(improvement_players)}")
             else:
                 st.write(f"No recommendations for {feature} (feature not found in dataset).")

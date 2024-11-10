@@ -227,26 +227,3 @@ else:
                             st.write(f"- {player}")
                         st.write(f"**Expected Improvement:** {rec['average_improvement']:.2f} units")
             
-            # Player Details Tab
-            with tabs[3]:
-                st.subheader("Individual Player Analysis")
-                selected_player = st.selectbox("Select Player for Detailed Analysis", selected_players)
-                if selected_player:
-                    player_stats = selected_players_df[selected_players_df['Player'] == selected_player]
-                    
-                    # Create radar chart for player stats
-                    categories = player_stats.select_dtypes(include=[np.number]).columns
-                    values = player_stats.select_dtypes(include=[np.number]).values[0]
-                    
-                    fig = go.Figure(data=go.Scatterpolar(
-                        r=values,
-                        theta=categories,
-                        fill='toself'
-                    ))
-                    
-                    fig.update_layout(
-                        polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-                        showlegend=False
-                    )
-                    
-                    st.plotly_chart(fig)

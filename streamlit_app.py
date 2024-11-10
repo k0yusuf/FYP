@@ -235,7 +235,7 @@ else:
             prediction_proba = SVM_model.predict_proba(scaled_average_stats)
             confidence_metrics = calculate_confidence_metrics(prediction_proba)
             
-            pred_tabs = st.tabs(["Main Prediction", "Probability Analysis", "Historical Context"])
+            pred_tabs = st.tabs(["Main Prediction", "Probability Analysis"])
             
             # Main Prediction Tab
             with pred_tabs[0]:

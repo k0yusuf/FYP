@@ -242,10 +242,11 @@ else:
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    st.markdown(f"### 🏆 Predicted Outcome: {prediction[0]}")
+                    prediction_labels = ['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions']
+                    st.markdown(f"### 🏆 Predicted Outcome: {prediction_labels[prediction[0]]}")
                     gauge_chart = create_prediction_gauge(
                         confidence_metrics['highest_confidence'],
-                        prediction[0]
+                        prediction_labels[prediction[0]]
                     )
                     st.plotly_chart(gauge_chart)
                 
@@ -268,7 +269,7 @@ else:
                 st.plotly_chart(prob_dist)
                 
                 prob_df = pd.DataFrame({
-                    'Outcome': SVM_model.classes_,
+                    'Outcome': ['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions'],
                     'Probability (%)': prediction_proba[0] * 100
                 }).sort_values('Probability (%)', ascending=False)
                 st.table(prob_df)
@@ -279,7 +280,7 @@ else:
             explainer = LimeTabularExplainer(
                 training_data=np.array(X_train),
                 feature_names=df.columns.drop(['Player', 'Season', 'Season Outcome']),
-                class_names=SVM_model.classes_,
+                class_names=['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions'],
                 mode='classification'
             )
             
@@ -362,24 +363,4 @@ else:
                                 current_stats = selected_players_df[feature_name]
                                 
                                 fig = go.Figure()
-                                fig.add_box(y=current_stats, name="Current Roster")
-                                fig.add_box(y=recommended_stats, name="Recommended Players")
-                                fig.update_layout(
-                                    title=f"Statistical Comparison - {feature_name}",
-                                    yaxis_title=feature_name,
-                                    showlegend=True,
-                                    height=400
-                                )
-                                st.plotly_chart(fig)
-                else:
-                    st.info("No specific recommendations found. Your team composition looks balanced!")
-
-# Add footer
-st.markdown("""
-    <div style='text-align: center; padding: 20px; background-color: #f5f5f5; 
-                border-radius: 10px; margin-top: 30px;'>
-        <p>🏀 Built with Streamlit • Powered by Machine Learning</p>
-        <p style='font-size: 12px;'>Data updated as of 2024</p>
-    </div>
-    """, unsafe_allow_html=True)
-            
+                                fig.ad

@@ -363,4 +363,12 @@ else:
                                 current_stats = selected_players_df[feature_name]
                                 
                                 fig = go.Figure()
-                                fig.ad
+                                fig.add_box(y=current_stats, name="Current Roster")
+                                fig.add_box(y=recommended_stats, name="Recommended Players")
+                                fig.update_layout(
+                                    title=f"Statistical Comparison - {feature_name}",
+                                    yaxis_title=feature_name,
+                                    showlegend=True,
+                                    height=400
+                                )
+                                st.plotly_chart(fig)

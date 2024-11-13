@@ -215,7 +215,7 @@ else:
     
     # Calculate average stats only for numeric columns, ignoring non-numeric ones
     numeric_columns = selected_players_df.select_dtypes(include=[np.number]).columns
-    average_stats = selected_players_df[numeric_columns].mean().values
+    average_stats = selected_players_df[numeric_columns].mean().values.reshape(1, -1)
     
     # Display average stats in an attractive format
     st.markdown("### 📊 Team Average Statistics")

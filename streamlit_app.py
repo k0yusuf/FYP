@@ -215,7 +215,6 @@ else:
     
     # Calculate average stats only for numeric columns, ignoring non-numeric ones
     numeric_columns = selected_players_df.select_dtypes(include=[np.number]).columns
-    numeric_columns.drop('Season')
     average_stats_to_display = selected_players_df[numeric_columns].mean().values
     average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore').values.reshape(1, -1) 
     # Display average stats in an attractive format

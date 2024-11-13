@@ -215,6 +215,7 @@ else:
     
     # Calculate average stats only for numeric columns, ignoring non-numeric ones
     numeric_columns = selected_players_df.select_dtypes(include=[np.number]).columns
+    average_stats_to_display = selected_players_df[numeric_columns].mean().values
     average_stats = selected_players_df[numeric_columns].mean().values.reshape(1, -1)
     
     # Display average stats in an attractive format
@@ -222,7 +223,7 @@ else:
     cols = st.columns(4)
     
     # Loop through numeric columns and corresponding values
-    for i, (stat, value) in enumerate(zip(numeric_columns, average_stats)):
+    for i, (stat, value) in enumerate(zip(numeric_columns, average_stats_to_display)):
         with cols[i % 4]:
             st.markdown(f"""
                 <div class="stat-card">

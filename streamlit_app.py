@@ -49,7 +49,7 @@ st.markdown('<h2 class="sub-title">Create Your Dream Roster!</h2>', unsafe_allow
 upload_method = st.radio(
     "Choose how to select players:",
     ["Manual Selection", "Upload Text File"],
-    key="upload_method_radio"  # Added unique key
+    key="upload_method_radio"
 )
 
 # Function to process text file upload
@@ -66,6 +66,9 @@ def process_text_file(uploaded_file):
         st.error(f"Error processing the file: {e}")
         return []
 
+# Initialize selected_players with an empty list
+selected_players = []
+
 # Player Selection Logic
 if upload_method == "Manual Selection":
     # Original multiselect method with a unique key
@@ -75,7 +78,7 @@ if upload_method == "Manual Selection":
         default=[],
         max_selections=15,
         help='You must select between 10 and 15 players.',
-        key="manual_player_selection"  # Added unique key
+        key="manual_player_selection"
     )
 else:
     # File upload for players
@@ -83,7 +86,7 @@ else:
         "Upload a text file with player names (one name per line)", 
         type=['txt'], 
         help="Upload a text file with each player's name on a separate line",
-        key="player_file_upload"  # Added unique key
+        key="player_file_upload"
     )
     
     # If file is uploaded
@@ -106,16 +109,28 @@ else:
             default=matched_players,
             max_selections=15,
             help='Select between 10 and 15 players found in the dataset.',
-            key="uploaded_player_selection"  # Added unique key
+            key="uploaded_player_selection"
         )
 
+# Add a placeholder to ensure the multiselect has been processed
+if selected_players is None:
+    selected_players = []
+
 # Validation checks for player selection
-if len(selected_players) < 10:
-    st.error("Please select at least 10 players.")
+if not selected_players:
+    st.error("No players selected. Please choose players either manually or by uploading a file.")
+elif len(selected_players) < 10:
+    st.error(f"You have selected {len(selected_players)} players. Please select at least 10 players.")
 elif len(selected_players) > 15:
-    st.error("You have selected more than 15 players. Please reduce your selection.")
+    st.error(f"You have selected {len(selected_players)} players. Please reduce your selection to 15 or fewer.")
 else:
     st.markdown('<p class="success-text">✅ Valid roster selected!</p>', unsafe_allow_html=True)
+
+    # The rest of your prediction logic would continue here...
+    # For example:
+    if st.button('Predict Season Outcome'):
+        # Your existing prediction code would go here
+        st.write(f"Predicting for {len(selected_players)} players")
 
 # Helper Functions for Prediction Section
 def create_prediction_gauge(probability, prediction):

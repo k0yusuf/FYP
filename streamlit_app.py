@@ -168,24 +168,47 @@ def generate_roster_recommendations(df, selected_players, weak_features, top_n=5
 
 # Main Application Logic
 # Instructions
-st.markdown("""
-    <div class="header">
-    <h3>Instructions:</h3>
-    <p>1. Select between 10 and 15 players to create your roster</p>
-    <p>2. Click 'Predict Season Outcome' to see the team's projected performance</p>
-    <p>3. Generate detailed explanations to understand the prediction</p>
-    <p>4. Explore recommendations for roster improvements</p>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown("### 📋 Upload Your Players or Select Them Manually")
+uploaded_file = st.file_uploader("Upload a CSV file with your selected players (column name: 'Player'):", type=["csv"])
 
-# Player Selection
-selected_players = st.multiselect(
-    'Select between 10 and 15 Players:',
-    options=player_names,
-    default=[],
-    max_selections=15,
-    help='You must select between 10 and 15 players.'
-)
+if uploaded_file:
+    # Process the uploaded file
+    try:
+        uploaded_df = pd.read_csv(uploaded_file)
+        if 'Player' not in uploaded_df.columns:
+            st.error("Uploaded file must contain a 'Player' column.")
+        else:
+            # Filter out invalid player names
+            uploaded_players = uploaded_df['Player'].tolist()
+            valid_players = [player for player in uploaded_players if player in player_names]
+            invalid_players = [player for player in uploaded_players if player not in player_names]
+
+            if invalid_players:
+                st.warning(f"Some players in the uploaded file are not in the dataset and will be ignored: {', '.join(invalid_players)}")
+
+            # Display valid players
+            st.success(f"Players successfully uploaded: {', '.join(valid_players)}")
+            selected_players = valid_players
+    except Exception as e:
+        st.error(f"Error processing the uploaded file: {e}")
+else:
+    # Allow manual selection if no file is uploaded
+    selected_players = st.multiselect(
+        'Select between 10 and 15 Players:',
+        options=player_names,
+        default=[],
+        max_selections=15,
+        help='You must select between 10 and 15 players.'
+    )
+
+# Validation for the selected players
+if len(selected_players) < 10:
+    st.error("Please select at least 10 players.")
+elif len(selected_players) > 15:
+    st.error("You have selected more than 15 players. Please reduce your selection.")
+else:
+    st.markdown('<p class="success-text">✅ Valid roster selected!</p>', unsafe_allow_html=True)
+
 
 # Load Models
 @st.cache_resource

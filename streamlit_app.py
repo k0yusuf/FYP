@@ -66,6 +66,59 @@ def process_text_file(uploaded_file):
         st.error(f"Error processing the file: {e}")
         return []
 
+
+def render_player_selection_ui(upload_method):
+    """
+    Render the appropriate player selection UI based on the user's choice.
+    
+    Parameters:
+    upload_method (str): The selected player selection method ('Manual Selection' or 'Upload Text File')
+    """
+    if upload_method == "Manual Selection":
+        # Render the manual player selection UI
+        selected_players = st.multiselect(
+            'Select between 10 and 15 Players:',
+            options=player_names,
+            default=[],
+            max_selections=15,
+            help='You must select between 10 and 15 players.',
+            key="manual_player_selection"
+        )
+        return selected_players
+    else:
+        # Render the file upload UI
+        uploaded_file = st.file_uploader(
+            "Upload a text file with player names (one name per line)", 
+            type=['txt'], 
+            help="Upload a text file with each player's name on a separate line",
+            key="player_file_upload"
+        )
+        
+        if uploaded_file is not None:
+            # Process the uploaded file
+            uploaded_players = process_text_file(uploaded_file)
+            
+            # Find matching players in the dataset
+            matched_players = [player for player in uploaded_players if player in player_names]
+            unmatched_players = [player for player in uploaded_players if player not in player_names]
+            
+            # Display matching and unmatched players
+            if unmatched_players:
+                st.warning(f"Some players could not be found in the dataset: {', '.join(unmatched_players)}")
+            
+            # Allow user to select from matched players
+            selected_players = st.multiselect(
+                'Select players from your uploaded list:',
+                options=matched_players,
+                default=matched_players,
+                max_selections=15,
+                help='Select between 10 and 15 players found in the dataset.',
+                key="uploaded_player_selection"
+            )
+            return selected_players
+        else:
+            return []
+
 # Initialize selected_players with an empty list
 selected_players = []
 
@@ -113,8 +166,15 @@ else:
         )
 
 # Add a placeholder to ensure the multiselect has been processed
-if selected_players is None:
-    selected_players = []
+# File Upload Method Selection
+upload_method = st.radio(
+    "Choose how to select players:",
+    ["Manual Selection", "Upload Text File"],
+    key="upload_method_radio"
+)
+
+# Call the render_player_selection_ui function
+selected_players = render_player_selection_ui(upload_method)
 
 # Validation checks for player selection
 if not selected_players:
@@ -126,11 +186,7 @@ elif len(selected_players) > 15:
 else:
     st.markdown('<p class="success-text">✅ Valid roster selected!</p>', unsafe_allow_html=True)
 
-    # The rest of your prediction logic would continue here...
-    # For example:
-    if st.button('Predict Season Outcome'):
-        # Your existing prediction code would go here
-        st.write(f"Predicting for {len(selected_players)} players")
+    # The rest of your prediction logic would continue here
 
 # Helper Functions for Prediction Section
 def create_prediction_gauge(probability, prediction):

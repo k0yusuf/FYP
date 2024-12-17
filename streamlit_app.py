@@ -67,31 +67,32 @@ def process_text_file(uploaded_file):
         return []
 
 
-def render_player_selection_ui(upload_method):
+def render_player_selection_ui(upload_method, key_prefix=""):
     """
     Render the appropriate player selection UI based on the user's choice.
     
     Parameters:
     upload_method (str): The selected player selection method ('Manual Selection' or 'Upload Text File')
+    key_prefix (str): A unique prefix for the Streamlit element keys
     """
     if upload_method == "Manual Selection":
-        # Render the manual player selection UI
+        # Render the manual player selection UI with a unique key
         selected_players = st.multiselect(
             'Select between 10 and 15 Players:',
             options=player_names,
             default=[],
             max_selections=15,
             help='You must select between 10 and 15 players.',
-            key="manual_player_selection"
+            key=f"{key_prefix}_manual_player_selection"
         )
         return selected_players
     else:
-        # Render the file upload UI
+        # Render the file upload UI with a unique key
         uploaded_file = st.file_uploader(
             "Upload a text file with player names (one name per line)", 
             type=['txt'], 
             help="Upload a text file with each player's name on a separate line",
-            key="player_file_upload"
+            key=f"{key_prefix}_player_file_upload"
         )
         
         if uploaded_file is not None:
@@ -106,14 +107,14 @@ def render_player_selection_ui(upload_method):
             if unmatched_players:
                 st.warning(f"Some players could not be found in the dataset: {', '.join(unmatched_players)}")
             
-            # Allow user to select from matched players
+            # Allow user to select from matched players with a unique key
             selected_players = st.multiselect(
                 'Select players from your uploaded list:',
                 options=matched_players,
                 default=matched_players,
                 max_selections=15,
                 help='Select between 10 and 15 players found in the dataset.',
-                key="uploaded_player_selection"
+                key=f"{key_prefix}_uploaded_player_selection"
             )
             return selected_players
         else:
@@ -173,8 +174,8 @@ upload_method = st.radio(
     key="upload_method_radio"
 )
 
-# Call the render_player_selection_ui function
-selected_players = render_player_selection_ui(upload_method)
+# Call the render_player_selection_ui function with a unique key prefix
+selected_players = render_player_selection_ui(upload_method, key_prefix="first_")
 
 # Validation checks for player selection
 if not selected_players:

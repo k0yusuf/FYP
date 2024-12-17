@@ -48,7 +48,8 @@ st.markdown('<h2 class="sub-title">Create Your Dream Roster!</h2>', unsafe_allow
 # File Upload Method Selection
 upload_method = st.radio(
     "Choose how to select players:",
-    ["Manual Selection", "Upload Text File"]
+    ["Manual Selection", "Upload Text File"],
+    key="upload_method_radio"  # Added unique key
 )
 
 # Function to process text file upload
@@ -67,20 +68,22 @@ def process_text_file(uploaded_file):
 
 # Player Selection Logic
 if upload_method == "Manual Selection":
-    # Original multiselect method
+    # Original multiselect method with a unique key
     selected_players = st.multiselect(
         'Select between 10 and 15 Players:',
         options=player_names,
         default=[],
         max_selections=15,
-        help='You must select between 10 and 15 players.'
+        help='You must select between 10 and 15 players.',
+        key="manual_player_selection"  # Added unique key
     )
 else:
     # File upload for players
     uploaded_file = st.file_uploader(
         "Upload a text file with player names (one name per line)", 
         type=['txt'], 
-        help="Upload a text file with each player's name on a separate line"
+        help="Upload a text file with each player's name on a separate line",
+        key="player_file_upload"  # Added unique key
     )
     
     # If file is uploaded
@@ -96,17 +99,15 @@ else:
         if unmatched_players:
             st.warning(f"Some players could not be found in the dataset: {', '.join(unmatched_players)}")
         
-        # Allow user to select from matched players
+        # Allow user to select from matched players with a unique key
         selected_players = st.multiselect(
             'Select players from your uploaded list:',
             options=matched_players,
             default=matched_players,
             max_selections=15,
-            help='Select between 10 and 15 players found in the dataset.'
+            help='Select between 10 and 15 players found in the dataset.',
+            key="uploaded_player_selection"  # Added unique key
         )
-
-# Rest of the previous script remains the same...
-# (The entire prediction logic, visualization, etc. from the previous script would be here)
 
 # Validation checks for player selection
 if len(selected_players) < 10:

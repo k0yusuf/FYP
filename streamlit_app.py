@@ -10,14 +10,13 @@ import plotly.express as px
 import plotly.graph_objects as go
 import re
 
-# Load the dataset containing player stats
+# Load the default dataset
 df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
 player_names = df['Player'].unique()
 
-# Set custom NBA-themed page layout
+# NBA themed styling
 st.set_page_config(page_title="NBA Season Outcome Predictor", page_icon="🏀", layout="wide")
 
-# NBA themed styling
 st.markdown("""
     <style>
     .main-title { 
@@ -40,23 +39,82 @@ st.markdown("""
         border-radius: 10px; 
         margin-bottom:20px;
     }
-    .success-text { 
-        font-size:18px; 
-        color: green; 
-        margin-bottom:15px;
-    }
-    .stat-card {
-        background-color: #ffffff;
-        padding: 15px;
-        border-radius: 5px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        margin-bottom: 10px;
-    }
     </style>
     """, unsafe_allow_html=True)
 
 st.markdown('<h1 class="main-title">🏀 NBA Season Outcome Prediction</h1>', unsafe_allow_html=True)
 st.markdown('<h2 class="sub-title">Create Your Dream Roster!</h2>', unsafe_allow_html=True)
+
+# File Upload Method Selection
+upload_method = st.radio(
+    "Choose how to select players:",
+    ["Manual Selection", "Upload Text File"]
+)
+
+# Function to process text file upload
+def process_text_file(uploaded_file):
+    try:
+        # Read the text file
+        file_content = uploaded_file.getvalue().decode('utf-8')
+        
+        # Split the content into lines and strip whitespace
+        uploaded_players = [line.strip() for line in file_content.split('\n') if line.strip()]
+        
+        return uploaded_players
+    except Exception as e:
+        st.error(f"Error processing the file: {e}")
+        return []
+
+# Player Selection Logic
+if upload_method == "Manual Selection":
+    # Original multiselect method
+    selected_players = st.multiselect(
+        'Select between 10 and 15 Players:',
+        options=player_names,
+        default=[],
+        max_selections=15,
+        help='You must select between 10 and 15 players.'
+    )
+else:
+    # File upload for players
+    uploaded_file = st.file_uploader(
+        "Upload a text file with player names (one name per line)", 
+        type=['txt'], 
+        help="Upload a text file with each player's name on a separate line"
+    )
+    
+    # If file is uploaded
+    if uploaded_file is not None:
+        # Process the uploaded file
+        uploaded_players = process_text_file(uploaded_file)
+        
+        # Find matching players in the dataset
+        matched_players = [player for player in uploaded_players if player in player_names]
+        unmatched_players = [player for player in uploaded_players if player not in player_names]
+        
+        # Display matching and unmatched players
+        if unmatched_players:
+            st.warning(f"Some players could not be found in the dataset: {', '.join(unmatched_players)}")
+        
+        # Allow user to select from matched players
+        selected_players = st.multiselect(
+            'Select players from your uploaded list:',
+            options=matched_players,
+            default=matched_players,
+            max_selections=15,
+            help='Select between 10 and 15 players found in the dataset.'
+        )
+
+# Rest of the previous script remains the same...
+# (The entire prediction logic, visualization, etc. from the previous script would be here)
+
+# Validation checks for player selection
+if len(selected_players) < 10:
+    st.error("Please select at least 10 players.")
+elif len(selected_players) > 15:
+    st.error("You have selected more than 15 players. Please reduce your selection.")
+else:
+    st.markdown('<p class="success-text">✅ Valid roster selected!</p>', unsafe_allow_html=True)
 
 # Helper Functions for Prediction Section
 def create_prediction_gauge(probability, prediction):
@@ -168,47 +226,24 @@ def generate_roster_recommendations(df, selected_players, weak_features, top_n=5
 
 # Main Application Logic
 # Instructions
-st.markdown("### 📋 Upload Your Players or Select Them Manually")
-uploaded_file = st.file_uploader("Upload a CSV file with your selected players (column name: 'Player'):", type=["csv"])
+st.markdown("""
+    <div class="header">
+    <h3>Instructions:</h3>
+    <p>1. Select between 10 and 15 players to create your roster</p>
+    <p>2. Click 'Predict Season Outcome' to see the team's projected performance</p>
+    <p>3. Generate detailed explanations to understand the prediction</p>
+    <p>4. Explore recommendations for roster improvements</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-if uploaded_file:
-    # Process the uploaded file
-    try:
-        uploaded_df = pd.read_csv(uploaded_file)
-        if 'Player' not in uploaded_df.columns:
-            st.error("Uploaded file must contain a 'Player' column.")
-        else:
-            # Filter out invalid player names
-            uploaded_players = uploaded_df['Player'].tolist()
-            valid_players = [player for player in uploaded_players if player in player_names]
-            invalid_players = [player for player in uploaded_players if player not in player_names]
-
-            if invalid_players:
-                st.warning(f"Some players in the uploaded file are not in the dataset and will be ignored: {', '.join(invalid_players)}")
-
-            # Display valid players
-            st.success(f"Players successfully uploaded: {', '.join(valid_players)}")
-            selected_players = valid_players
-    except Exception as e:
-        st.error(f"Error processing the uploaded file: {e}")
-else:
-    # Allow manual selection if no file is uploaded
-    selected_players = st.multiselect(
-        'Select between 10 and 15 Players:',
-        options=player_names,
-        default=[],
-        max_selections=15,
-        help='You must select between 10 and 15 players.'
-    )
-
-# Validation for the selected players
-if len(selected_players) < 10:
-    st.error("Please select at least 10 players.")
-elif len(selected_players) > 15:
-    st.error("You have selected more than 15 players. Please reduce your selection.")
-else:
-    st.markdown('<p class="success-text">✅ Valid roster selected!</p>', unsafe_allow_html=True)
-
+# Player Selection
+selected_players = st.multiselect(
+    'Select between 10 and 15 Players:',
+    options=player_names,
+    default=[],
+    max_selections=15,
+    help='You must select between 10 and 15 players.'
+)
 
 # Load Models
 @st.cache_resource

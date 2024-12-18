@@ -272,15 +272,15 @@ X_train = models['X_train']
 
     # Calculate team stats
 # Filter data for selected players
-    selected_players_df = df[df['Player'].isin(selected_players)]
+selected_players_df = df[df['Player'].isin(selected_players)]
     
     # Calculate average stats only for numeric columns, ignoring non-numeric ones
-    numeric_columns = selected_players_df.select_dtypes(include=[np.number]).columns
-    average_stats_to_display = selected_players_df[numeric_columns].mean().values
-    average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore').values.reshape(1, -1) 
+numeric_columns = selected_players_df.select_dtypes(include=[np.number]).columns
+average_stats_to_display = selected_players_df[numeric_columns].mean().values
+average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore').values.reshape(1, -1) 
     # Display average stats in an attractive format
-    st.markdown("### 📊 Team Average Statistics")
-    cols = st.columns(4)
+st.markdown("### 📊 Team Average Statistics")
+cols = st.columns(4)
     
     # Loop through numeric columns and corresponding values
     for i, (stat, value) in enumerate(zip(numeric_columns, average_stats_to_display)):

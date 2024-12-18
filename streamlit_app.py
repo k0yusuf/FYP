@@ -281,7 +281,7 @@ scaled_average_stats = scaler.transform(average_stats)
 
     # Prediction Section
 if len(selected_players) >= 10 and len(selected_players) <= 15:
-        st.markdown("### 📊 Team Average Statistics")
+    st.markdown("### 📊 Team Average Statistics")
     cols = st.columns(4)
         
     for i, (stat, value) in enumerate(zip(numeric_columns, average_stats_to_display)):

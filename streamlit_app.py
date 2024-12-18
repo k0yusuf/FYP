@@ -252,14 +252,7 @@ st.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
-# Player Selection
-selected_players = st.multiselect(
-    'Select between 10 and 15 Players:',
-    options=player_names,
-    default=[],
-    max_selections=15,
-    help='You must select between 10 and 15 players.'
-)
+
 
 # Load Models
 @st.cache_resource
@@ -275,13 +268,7 @@ SVM_model = models['model']
 scaler = models['scaler']
 X_train = models['X_train']
 
-# Process Selection
-if len(selected_players) < 10:
-    st.error("Please select at least 10 players.")
-elif len(selected_players) > 15:
-    st.error("You have selected more than 15 players. Please reduce your selection.")
-else:
-    st.markdown('<p class="success-text">✅ Valid roster selected!</p>', unsafe_allow_html=True)
+
 
     # Calculate team stats
 # Filter data for selected players

@@ -279,14 +279,14 @@ st.markdown("### 📊 Team Average Statistics")
 cols = st.columns(4)
     
     # Loop through numeric columns and corresponding values
-for i, (stat, value) in enumerate(zip(numeric_columns, average_stats_to_display)):
-    with cols[i % 4]:
-        st.markdown(f"""
-            <div class="stat-card">
-            <h4>{stat}</h4>
-            <p style="font-size: 20px; font-weight: bold;">{value:.2f}</p>
-            </div>
-            """, unsafe_allow_html=True)
+#for i, (stat, value) in enumerate(zip(numeric_columns, average_stats_to_display)):
+    #with cols[i % 4]:
+        #st.markdown(f"""
+            #<div class="stat-card">
+            #<h4>{stat}</h4>
+            #<p style="font-size: 20px; font-weight: bold;">{value:.2f}</p>
+            #</div>
+            #""", unsafe_allow_html=True)
     # Scale the features
 scaled_average_stats = scaler.transform(average_stats)
 

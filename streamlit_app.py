@@ -275,23 +275,23 @@ numeric_columns = selected_players_df.select_dtypes(include=[np.number]).columns
 average_stats_to_display = selected_players_df[numeric_columns].mean().values
 average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Season Outcome'], errors='ignore').values.reshape(1, -1) 
     # Display average stats in an attractive format
-st.markdown("### 📊 Team Average Statistics")
-cols = st.columns(4)
-    
-    # Loop through numeric columns and corresponding values
-#for i, (stat, value) in enumerate(zip(numeric_columns, average_stats_to_display)):
-    #with cols[i % 4]:
-        #st.markdown(f"""
-            #<div class="stat-card">
-            #<h4>{stat}</h4>
-            #<p style="font-size: 20px; font-weight: bold;">{value:.2f}</p>
-            #</div>
-            #""", unsafe_allow_html=True)
+
     # Scale the features
 scaled_average_stats = scaler.transform(average_stats)
 
     # Prediction Section
 if len(selected_players) >= 10 and len(selected_players) <= 15:
+        st.markdown("### 📊 Team Average Statistics")
+    cols = st.columns(4)
+        
+    for i, (stat, value) in enumerate(zip(numeric_columns, average_stats_to_display)):
+        with cols[i % 4]:
+            st.markdown(f"""
+                <div class="stat-card">
+                <h4>{stat}</h4>
+                <p style="font-size: 20px; font-weight: bold;">{value:.2f}</p>
+                </div>
+                """, unsafe_allow_html=True)
     if st.button('🎯 Predict Season Outcome'):
         with st.spinner('Analyzing team composition and generating predictions...'):
             prediction = SVM_model.predict(scaled_average_stats)

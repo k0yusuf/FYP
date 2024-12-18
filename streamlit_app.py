@@ -291,146 +291,147 @@ cols = st.columns(4)
 scaled_average_stats = scaler.transform(average_stats)
 
     # Prediction Section
-if st.button('🎯 Predict Season Outcome'):
-    with st.spinner('Analyzing team composition and generating predictions...'):
-        prediction = SVM_model.predict(scaled_average_stats)
-        prediction_proba = SVM_model.predict_proba(scaled_average_stats)
-        confidence_metrics = calculate_confidence_metrics(prediction_proba)
-            
-        pred_tabs = st.tabs(["Main Prediction", "Probability Analysis"])
-            
-            # Main Prediction Tab
-        with pred_tabs[0]:
-             col1, col2 = st.columns(2)
+if len(selected_players) >= 10 and len(selected_players) <= 15:
+    if st.button('🎯 Predict Season Outcome'):
+        with st.spinner('Analyzing team composition and generating predictions...'):
+            prediction = SVM_model.predict(scaled_average_stats)
+            prediction_proba = SVM_model.predict_proba(scaled_average_stats)
+            confidence_metrics = calculate_confidence_metrics(prediction_proba)
                 
-             with col1:
-                prediction_labels = ['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions']
-                st.markdown(f"### 🏆 Predicted Outcome: {prediction_labels[prediction[0]]}")
-                gauge_chart = create_prediction_gauge(
-                    confidence_metrics['highest_confidence'],
-                    prediction_labels[prediction[0]]
+            pred_tabs = st.tabs(["Main Prediction", "Probability Analysis"])
+                
+                # Main Prediction Tab
+            with pred_tabs[0]:
+                 col1, col2 = st.columns(2)
+                    
+                 with col1:
+                    prediction_labels = ['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions']
+                    st.markdown(f"### 🏆 Predicted Outcome: {prediction_labels[prediction[0]]}")
+                    gauge_chart = create_prediction_gauge(
+                        confidence_metrics['highest_confidence'],
+                        prediction_labels[prediction[0]]
+                        )
+                    st.plotly_chart(gauge_chart)
+                    
+                 with col2:
+                    st.markdown("### 📈 Confidence Metrics")
+                    metrics_cols = st.columns(2)
+                    with metrics_cols[0]:
+                        st.metric("Primary Confidence", f"{confidence_metrics['highest_confidence']*100:.1f}%")
+                        st.metric("Decision Margin", f"{confidence_metrics['margin']*100:.1f}%")
+                    with metrics_cols[1]:
+                        st.metric("Secondary Outcome", f"{confidence_metrics['second_highest_confidence']*100:.1f}%")
+                        st.metric("Uncertainty", f"{confidence_metrics['entropy']:.2f}")
+                
+                # Probability Analysis Tab
+            with pred_tabs[1]:
+                prob_dist = create_probability_distribution(
+                    prediction_proba[0],
+                    SVM_model.classes_
                     )
-                st.plotly_chart(gauge_chart)
-                
-             with col2:
-                st.markdown("### 📈 Confidence Metrics")
-                metrics_cols = st.columns(2)
-                with metrics_cols[0]:
-                    st.metric("Primary Confidence", f"{confidence_metrics['highest_confidence']*100:.1f}%")
-                    st.metric("Decision Margin", f"{confidence_metrics['margin']*100:.1f}%")
-                with metrics_cols[1]:
-                    st.metric("Secondary Outcome", f"{confidence_metrics['second_highest_confidence']*100:.1f}%")
-                    st.metric("Uncertainty", f"{confidence_metrics['entropy']:.2f}")
-            
-            # Probability Analysis Tab
-        with pred_tabs[1]:
-            prob_dist = create_probability_distribution(
-                prediction_proba[0],
-                SVM_model.classes_
+                st.plotly_chart(prob_dist)
+                    
+                prob_df = pd.DataFrame({
+                    'Outcome': ['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions'],
+                    'Probability (%)': prediction_proba[0] * 100
+                }).sort_values('Probability (%)', ascending=False)
+                st.table(prob_df)
+    
+        # Interpretability Section
+    if st.button('🔍 Generate Detailed Explanation'):
+        with st.spinner('Analyzing roster strengths and weaknesses...'):
+            explainer = LimeTabularExplainer(
+                training_data=np.array(X_train),
+                feature_names=df.columns.drop(['Player', 'Season', 'Season Outcome']),
+                class_names=['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions'],
+                mode='classification'
                 )
-            st.plotly_chart(prob_dist)
                 
-            prob_df = pd.DataFrame({
-                'Outcome': ['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions'],
-                'Probability (%)': prediction_proba[0] * 100
-            }).sort_values('Probability (%)', ascending=False)
-            st.table(prob_df)
-
-    # Interpretability Section
-if st.button('🔍 Generate Detailed Explanation'):
-    with st.spinner('Analyzing roster strengths and weaknesses...'):
-        explainer = LimeTabularExplainer(
-            training_data=np.array(X_train),
-            feature_names=df.columns.drop(['Player', 'Season', 'Season Outcome']),
-            class_names=['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions'],
-            mode='classification'
-            )
-            
-        exp = explainer.explain_instance(
-            scaled_average_stats[0],
-            SVM_model.predict_proba,
-            num_features=10
-            )
-            
-        exp_list = exp.as_list()
-        feature_importance_plot = create_feature_importance_plot(exp_list)
-            
-        analysis_tabs = st.tabs(["Strengths", "Weaknesses", "Recommendations"])
-            
-            # Strengths Analysis Tab
-        with analysis_tabs[0]:
-            st.plotly_chart(feature_importance_plot)
-            positive_features = [x for x in exp_list if x[1] > 0]
+            exp = explainer.explain_instance(
+                scaled_average_stats[0],
+                SVM_model.predict_proba,
+                num_features=10
+                )
                 
-            for feature, impact in positive_features:
-                raw_feature = re.sub(r" > .+| < .+", "", feature).strip()
-                col1, col2 = st.columns(2)
+            exp_list = exp.as_list()
+            feature_importance_plot = create_feature_importance_plot(exp_list)
+                
+            analysis_tabs = st.tabs(["Strengths", "Weaknesses", "Recommendations"])
+                
+                # Strengths Analysis Tab
+            with analysis_tabs[0]:
+                st.plotly_chart(feature_importance_plot)
+                positive_features = [x for x in exp_list if x[1] > 0]
                     
-                with col1:
-                    st.markdown(f"### {feature}")
-                    st.metric("Impact Score", f"+{impact:.3f}")
-                    
-                with col2:
-                    contributions = analyze_player_contributions(selected_players_df, raw_feature)
-                    if contributions is not None:
-                        fig = px.bar(contributions, x='Player', y=raw_feature,
-                                    title=f'Player Contributions - {raw_feature}')
-                        st.plotly_chart(fig)
-            
-            # Weaknesses Analysis Tab
-        with analysis_tabs[1]:
-            negative_features = [x for x in exp_list if x[1] < 0]
-                
-            for feature, impact in negative_features:
-                raw_feature = re.sub(r" > .+| < .+", "", feature).strip()
-                col1, col2 = st.columns(2)
-                    
-                with col1:
-                    st.markdown(f"### {feature}")
-                    st.metric("Impact Score", f"{impact:.3f}")
-                    
-                with col2:
-                    contributions = analyze_player_contributions(selected_players_df, raw_feature)
-                    if contributions is not None:
-                        fig = px.bar(contributions, x='Player', y=raw_feature,
-                                    title=f'Player Performance - {raw_feature}')
-                        st.plotly_chart(fig)
-            
-            # Recommendations Tab
-        with analysis_tabs[2]:
-            st.markdown("### 🎯 Roster Improvement Recommendations")
-                
-                # Get list of features that need improvement
-            weak_features = [x[0] for x in exp_list if x[1] < 0]
-            recommendations = generate_roster_recommendations(df, selected_players, weak_features)
-                
-            if recommendations:
-                for feature, data in recommendations.items():
-                    with st.expander(f"Improve {feature}"):
-                        st.markdown("#### Recommended Players:")
-                        for player in data['players']:
-                            col1, col2 = st.columns([3, 1])
-                            with col1:
-                                st.write(f"🏀 {player}")
-                            with col2:
-                                st.metric(
-                                    "Potential Improvement",
-                                     f"+{data['average_improvement']:.2f}"
-                                    )
-                            
-                            # Show comparison visualization
-                        feature_name = re.sub(r" > .+| < .+", "", feature).strip()
-                        if feature_name in df.columns:
-                            recommended_stats = df[df['Player'].isin(data['players'])][feature_name]
-                            current_stats = selected_players_df[feature_name]
-                                
-                            fig = go.Figure()
-                            fig.add_box(y=current_stats, name="Current Roster")
-                            fig.add_box(y=recommended_stats, name="Recommended Players")
-                            fig.update_layout(
-                                title=f"Statistical Comparison - {feature_name}",
-                                yaxis_title=feature_name,
-                                showlegend=True,
-                                height=400
-                                )
+                for feature, impact in positive_features:
+                    raw_feature = re.sub(r" > .+| < .+", "", feature).strip()
+                    col1, col2 = st.columns(2)
+                        
+                    with col1:
+                        st.markdown(f"### {feature}")
+                        st.metric("Impact Score", f"+{impact:.3f}")
+                        
+                    with col2:
+                        contributions = analyze_player_contributions(selected_players_df, raw_feature)
+                        if contributions is not None:
+                            fig = px.bar(contributions, x='Player', y=raw_feature,
+                                        title=f'Player Contributions - {raw_feature}')
                             st.plotly_chart(fig)
+                
+                # Weaknesses Analysis Tab
+            with analysis_tabs[1]:
+                negative_features = [x for x in exp_list if x[1] < 0]
+                    
+                for feature, impact in negative_features:
+                    raw_feature = re.sub(r" > .+| < .+", "", feature).strip()
+                    col1, col2 = st.columns(2)
+                        
+                    with col1:
+                        st.markdown(f"### {feature}")
+                        st.metric("Impact Score", f"{impact:.3f}")
+                        
+                    with col2:
+                        contributions = analyze_player_contributions(selected_players_df, raw_feature)
+                        if contributions is not None:
+                            fig = px.bar(contributions, x='Player', y=raw_feature,
+                                        title=f'Player Performance - {raw_feature}')
+                            st.plotly_chart(fig)
+                
+                # Recommendations Tab
+            with analysis_tabs[2]:
+                st.markdown("### 🎯 Roster Improvement Recommendations")
+                    
+                    # Get list of features that need improvement
+                weak_features = [x[0] for x in exp_list if x[1] < 0]
+                recommendations = generate_roster_recommendations(df, selected_players, weak_features)
+                    
+                if recommendations:
+                    for feature, data in recommendations.items():
+                        with st.expander(f"Improve {feature}"):
+                            st.markdown("#### Recommended Players:")
+                            for player in data['players']:
+                                col1, col2 = st.columns([3, 1])
+                                with col1:
+                                    st.write(f"🏀 {player}")
+                                with col2:
+                                    st.metric(
+                                        "Potential Improvement",
+                                         f"+{data['average_improvement']:.2f}"
+                                        )
+                                
+                                # Show comparison visualization
+                            feature_name = re.sub(r" > .+| < .+", "", feature).strip()
+                            if feature_name in df.columns:
+                                recommended_stats = df[df['Player'].isin(data['players'])][feature_name]
+                                current_stats = selected_players_df[feature_name]
+                                    
+                                fig = go.Figure()
+                                fig.add_box(y=current_stats, name="Current Roster")
+                                fig.add_box(y=recommended_stats, name="Recommended Players")
+                                fig.update_layout(
+                                    title=f"Statistical Comparison - {feature_name}",
+                                    yaxis_title=feature_name,
+                                    showlegend=True,
+                                    height=400
+                                    )
+                                st.plotly_chart(fig)

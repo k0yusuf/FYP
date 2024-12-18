@@ -316,7 +316,7 @@ if st.button('🎯 Predict Season Outcome'):
                     )
                 st.plotly_chart(gauge_chart)
                 
-            with col2:
+             with col2:
                 st.markdown("### 📈 Confidence Metrics")
                 metrics_cols = st.columns(2)
                 with metrics_cols[0]:

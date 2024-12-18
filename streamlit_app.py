@@ -126,12 +126,6 @@ elif len(selected_players) > 15:
 else:
     st.markdown('<p class="success-text">✅ Valid roster selected!</p>', unsafe_allow_html=True)
 
-    # The rest of your prediction logic would continue here...
-    # For example:
-    if st.button('Predict Season Outcome'):
-        # Your existing prediction code would go here
-        st.write(f"Predicting for {len(selected_players)} players")
-
 # Helper Functions for Prediction Section
 def create_prediction_gauge(probability, prediction):
     """Create a gauge chart showing prediction confidence."""

@@ -134,6 +134,21 @@ def analyze_player_contributions(selected_players_df, feature_name, ascending=Fa
         )
     return None
 
+    
+    return recommendations
+
+def analyze_weakness_contributors(selected_players_df, feature_name):
+    """Identify players who are significantly underperforming in a specific feature."""
+    if feature_name in selected_players_df.columns:
+        # Calculate z-scores for the feature within the selected players
+        feature_data = selected_players_df[['Player', feature_name]].copy()
+        feature_data['z_score'] = (feature_data[feature_name] - feature_data[feature_name].mean()) / feature_data[feature_name].std()
+        
+        # Identify players performing below average (negative z-score)
+        weak_performers = feature_data[feature_data['z_score'] < -0.5].sort_values('z_score')
+        return weak_performers
+    return None
+
 def generate_roster_recommendations(df, selected_players, weak_features, top_n=5):
     """Generate intelligent roster recommendations based on weak features."""
     recommendations = {}
@@ -142,19 +157,27 @@ def generate_roster_recommendations(df, selected_players, weak_features, top_n=5
     for feature in weak_features:
         feature_name = re.sub(r" > .+| < .+", "", feature).strip()
         if feature_name in df.columns:
+            # Analysis for potential additions
             z_scores = (available_players[feature_name] - available_players[feature_name].mean()) / available_players[feature_name].std()
             strong_players = available_players[z_scores > 1]['Player'].tolist()[:top_n]
             
-            if strong_players:
+            # Analysis for potential moves
+            selected_players_df = df[df['Player'].isin(selected_players)]
+            weak_performers = analyze_weakness_contributors(selected_players_df, feature_name)
+            
+            if strong_players or (weak_performers is not None and not weak_performers.empty):
                 recommendations[feature] = {
-                    'players': strong_players,
+                    'players_to_add': strong_players,
                     'average_improvement': (
                         available_players[available_players['Player'].isin(strong_players)][feature_name].mean() -
                         selected_players_df[feature_name].mean()
-                    )
+                    ),
+                    'players_to_reconsider': weak_performers if weak_performers is not None else pd.DataFrame()
                 }
     
     return recommendations
+
+
 
 # Main Application Logic
 # Instructions
@@ -398,40 +421,65 @@ if len(selected_players) >= 10 and len(selected_players) <= 15:
                             st.plotly_chart(fig)
                 
                 # Recommendations Tab
-            with analysis_tabs[2]:
+          with analysis_tabs[2]:
                 st.markdown("### 🎯 Roster Improvement Recommendations")
-                    
-                    # Get list of features that need improvement
+    
+    # Get list of features that need improvement
                 weak_features = [x[0] for x in exp_list if x[1] < 0]
                 recommendations = generate_roster_recommendations(df, selected_players, weak_features)
-                    
+    
                 if recommendations:
                     for feature, data in recommendations.items():
-                        with st.expander(f"Improve {feature}"):
-                            st.markdown("#### Recommended Players:")
-                            for player in data['players']:
-                                col1, col2 = st.columns([3, 1])
-                                with col1:
-                                    st.write(f"🏀 {player}")
-                                with col2:
-                                    st.metric(
-                                        "Potential Improvement",
-                                         f"+{data['average_improvement']:.2f}"
-                                        )
-                                
-                                # Show comparison visualization
-                            feature_name = re.sub(r" > .+| < .+", "", feature).strip()
-                            if feature_name in df.columns:
-                                recommended_stats = df[df['Player'].isin(data['players'])][feature_name]
-                                current_stats = selected_players_df[feature_name]
-                                    
-                                fig = go.Figure()
-                                fig.add_box(y=current_stats, name="Current Roster")
-                                fig.add_box(y=recommended_stats, name="Recommended Players")
-                                fig.update_layout(
-                                    title=f"Statistical Comparison - {feature_name}",
-                                    yaxis_title=feature_name,
-                                    showlegend=True,
-                                    height=400
-                                    )
-                                st.plotly_chart(fig)
+                    with st.expander(f"Improve {feature}"):
+                # Recommended Additions
+                    st.markdown("#### 📈 Recommended Additions:")
+                    for player in data['players_to_add']:
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                        st.write(f"🏀 {player}")
+                        with col2:
+                        st.metric(
+                            "Potential Improvement",
+                            f"+{data['average_improvement']:.2f}"
+                        )
+                
+                # Players to Reconsider
+                if not data['players_to_reconsider'].empty:
+                    st.markdown("#### 📉 Players to Reconsider:")
+                    for _, row in data['players_to_reconsider'].iterrows():
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            st.write(f"🏀 {row['Player']}")
+                        with col2:
+                            st.metric(
+                                "Performance",
+                                f"{row['z_score']:.2f} σ"
+                            )
+                
+                # Show comparison visualization
+                feature_name = re.sub(r" > .+| < .+", "", feature).strip()
+                if feature_name in df.columns:
+                    # Create visualization comparing current roster, recommended additions, and players to reconsider
+                    fig = go.Figure()
+                    
+                    # Current roster stats
+                    current_stats = selected_players_df[feature_name]
+                    fig.add_box(y=current_stats, name="Current Roster", marker_color='gray')
+                    
+                    # Recommended players stats
+                    if data['players_to_add']:
+                        recommended_stats = df[df['Player'].isin(data['players_to_add'])][feature_name]
+                        fig.add_box(y=recommended_stats, name="Recommended Additions", marker_color='green')
+                    
+                    # Players to reconsider stats
+                    if not data['players_to_reconsider'].empty:
+                        reconsider_stats = df[df['Player'].isin(data['players_to_reconsider']['Player'])][feature_name]
+                        fig.add_box(y=reconsider_stats, name="Players to Reconsider", marker_color='red')
+                    
+                    fig.update_layout(
+                        title=f"Statistical Comparison - {feature_name}",
+                        yaxis_title=feature_name,
+                        showlegend=True,
+                        height=400
+                    )
+                    st.plotly_chart(fig)

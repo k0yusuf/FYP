@@ -303,10 +303,14 @@ average_stats = selected_players_df.mean(numeric_only=True).drop(['Season', 'Sea
 scaled_average_stats = scaler.transform(average_stats)
 
     # Prediction Section
-if len(selected_players) >= 10 and len(selected_players) <= 15:
+if len(selected_players) < 10:
+    st.warning("⚠️ Please select at least 10 players to form a team.")
+elif len(selected_players) > 15:
+    st.error("❌ You have selected more than 15 players. Please reduce your selection to a maximum of 15 players.")
+else:
     st.markdown("### 📊 Team Average Statistics")
     cols = st.columns(4)
-        
+    
     for i, (stat, value) in enumerate(zip(numeric_columns, average_stats_to_display)):
         with cols[i % 4]:
             st.markdown(f"""

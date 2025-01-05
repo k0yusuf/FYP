@@ -284,7 +284,7 @@ def load_models():
 
 models = load_models()
 SVM_model = models['model']
-scaler = models['scaler (1)']
+scaler = models['scaler']
 X_train = models['X_train']
 
 

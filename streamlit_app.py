@@ -198,9 +198,9 @@ upload_method = st.radio(
 )
 
 # Function to process text file upload
-def process_text_file(text):
-    # Convert text to lowercase first
-    text = text.lower()
+def process_text_file(text_file):
+    # Read the content of the file and decode it
+    text = text_file.read().decode('utf-8').lower()
     words = text.split()
     processed_text = []
     

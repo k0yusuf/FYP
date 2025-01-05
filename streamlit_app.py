@@ -221,7 +221,7 @@ if upload_method == "Manual Selection":
         'Select between 10 and 15 Players:',
         options=player_names,
         default=[],
-        max_selections=15,
+        #max_selections=15,
         help='You must select between 10 and 15 players.',
         key="manual_player_selection"
     )

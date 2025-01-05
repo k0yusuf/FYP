@@ -277,8 +277,8 @@ else:
 @st.cache_resource
 def load_models():
     return {
-        'model': joblib.load('svm_model (1).joblib'),
-        'scaler': joblib.load('scaler.joblib'),
+        'model': joblib.load('best_svm_model.joblib'),
+        'scaler': joblib.load('scaler (1).joblib'),
         'X_train': joblib.load('training_data.joblib')
     }
 

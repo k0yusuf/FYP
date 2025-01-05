@@ -279,12 +279,12 @@ def load_models():
     return {
         'model': joblib.load('best_svm_model.joblib'),
         'scaler': joblib.load('scaler (1).joblib'),
-        'X_train': joblib.load('training_data.joblib')
+        'X_train': joblib.load('X_train.joblib')
     }
 
 models = load_models()
 SVM_model = models['model']
-scaler = models['scaler']
+scaler = models['scaler (1)']
 X_train = models['X_train']
 
 

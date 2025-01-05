@@ -1,4 +1,4 @@
-import streamlit as st
+ import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
@@ -11,7 +11,7 @@ import plotly.graph_objects as go
 import re
 
 # Load the default dataset
-df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024.csv').drop(columns=['Unnamed: 0'], errors='ignore')
+df = pd.read_csv('https://raw.githubusercontent.com/k0yusuf/FYP/refs/heads/master/df_2024%20(1).csv').drop(columns=['Unnamed: 0'], errors='ignore')
 player_names = df['Player'].unique()
 
 # NBA themed styling

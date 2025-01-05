@@ -198,18 +198,19 @@ upload_method = st.radio(
 )
 
 # Function to process text file upload
-def process_text_file(uploaded_file):
-    try:
-        # Read the text file
-        file_content = uploaded_file.getvalue().decode('utf-8')
-        
-        # Split the content into lines and strip whitespace
-        uploaded_players = [line.strip() for line in file_content.split('\n') if line.strip()]
-        
-        return uploaded_players
-    except Exception as e:
-        st.error(f"Error processing the file: {e}")
-        return []
+def process_text_file(text):
+    # Convert text to lowercase first
+    text = text.lower()
+    words = text.split()
+    processed_text = []
+    
+    for word in words:
+        # Remove punctuation and special characters
+        word = ''.join(char for char in word if char.isalnum() or char == '-')
+        if word:  # Only add non-empty strings
+            processed_text.append(word)
+            
+    return ' '.join(processed_text)
 
 # Initialize selected_players with an empty list
 selected_players = []

@@ -332,7 +332,7 @@ if len(selected_players) >= 10 and len(selected_players) <= 15:
                     st.markdown(f"### 🏆 Predicted Outcome: {prediction_labels[int(prediction[0])]}")
                     gauge_chart = create_prediction_gauge(
                         confidence_metrics['highest_confidence'],
-                        prediction_labels[prediction[0]]
+                        prediction_labels[int(prediction[0])]
                         )
                     st.plotly_chart(gauge_chart)
                     

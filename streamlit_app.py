@@ -198,22 +198,21 @@ upload_method = st.radio(
 )
 
 # Function to process text file upload
+# Function to process text file upload
 def process_text_file(uploaded_file):
     try:
         # Read the text file
         file_content = uploaded_file.getvalue().decode('utf-8')
         
-        # Split the content into lines and strip whitespace
-        uploaded_players = [line.strip() for line in file_content.split('\n') if line.strip()]
+        # Split the content into lines, strip whitespace, and convert to lowercase
+        uploaded_players = [line.strip().lower() for line in file_content.split('\n') if line.strip()]
         
         return uploaded_players
     except Exception as e:
         st.error(f"Error processing the file: {e}")
         return []
 
-# Initialize selected_players with an empty list
-selected_players = []
-
+# Player Selection Logic
 # Player Selection Logic
 if upload_method == "Manual Selection":
     # Original multiselect method with a unique key
@@ -239,9 +238,12 @@ else:
         # Process the uploaded file
         uploaded_players = process_text_file(uploaded_file)
         
-        # Find matching players in the dataset
-        matched_players = [player for player in uploaded_players if player in player_names]
-        unmatched_players = [player for player in uploaded_players if player not in player_names]
+        # Convert player names in the dataset to lowercase for case-insensitive matching
+        player_names_lower = [name.lower() for name in player_names]
+        
+        # Find matching players in the dataset (case-insensitive)
+        matched_players = [player for player in uploaded_players if player in player_names_lower]
+        unmatched_players = [player for player in uploaded_players if player not in player_names_lower]
         
         # Display matching and unmatched players
         if unmatched_players:
@@ -250,24 +252,25 @@ else:
         # Allow user to select from matched players with a unique key
         selected_players = st.multiselect(
             'Select players from your uploaded list:',
-            options=matched_players,
-            default=matched_players,
+            options=[name.title() for name in matched_players],  # Convert back to title case for display
+            default=[name.title() for name in matched_players],  # Convert back to title case for display
             max_selections=15,
             help='Select between 10 and 15 players found in the dataset.',
             key="uploaded_player_selection"
         )
 
-# Add a placeholder to ensure the multiselect has been processed
-if selected_players is None:
-    selected_players = []
+# Handle the case where too many players are selected
+if len(selected_players) > 15:
+    st.error("❌ You have selected more than 15 players. Please reduce your selection to a maximum of 15 players.")
+    # Reset the selection to the first 15 players
+    selected_players = selected_players[:15]
+    st.info(f"Your selection has been trimmed to the first 15 players: {', '.join(selected_players)}")
 
 # Validation checks for player selection
 if not selected_players:
     st.error("No players selected. Please choose players either manually or by uploading a file.")
 elif len(selected_players) < 10:
     st.error(f"You have selected {len(selected_players)} players. Please select at least 10 players.")
-elif len(selected_players) > 15:
-    st.error(f"You have selected {len(selected_players)} players. Please reduce your selection to 15 or fewer.")
 else:
     st.markdown('<p class="success-text">✅ Valid roster selected!</p>', unsafe_allow_html=True)
 

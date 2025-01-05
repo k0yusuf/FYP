@@ -329,7 +329,7 @@ if len(selected_players) >= 10 and len(selected_players) <= 15:
                     
                  with col1:
                     prediction_labels = ['Not Make the Playoffs', 'First Round Exit', '2nd Round Exit', 'Conference Finals', 'Finals', 'Champions']
-                    st.markdown(f"### 🏆 Predicted Outcome: {prediction_labels[prediction[0]]}")
+                    st.markdown(f"### 🏆 Predicted Outcome: {prediction_labels[int(prediction[0])]}")
                     gauge_chart = create_prediction_gauge(
                         confidence_metrics['highest_confidence'],
                         prediction_labels[prediction[0]]

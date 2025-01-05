@@ -252,7 +252,7 @@ else:
             'Select players from your uploaded list:',
             options=matched_players,
             default=matched_players,
-            max_selections=15,
+            #max_selections=15,
             help='Select between 10 and 15 players found in the dataset.',
             key="uploaded_player_selection"
         )
